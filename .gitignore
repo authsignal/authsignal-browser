@@ -1,0 +1,10 @@
+*.log
+.DS_Store
+node_modules
+.cache
+dist
+.parcel-cache
+package-lock.json
+.nyc_output
+coverage/
+*.tsbuildinfo

@@ -1,0 +1,46 @@
+{
+  "name": "authsignal-browser",
+  "version": "0.0.1",
+  "scripts": {
+    "typecheck": "tsc",
+    "clean": "rm -rf ./dist",
+    "build": "rollup --configPlugin rollup-plugin-ts --config rollup.config.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/authsignal/authsignal-browser.git"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@fingerprintjs/fingerprintjs": "^3.3.3",
+    "basiclightbox": "^5.0.4",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.4",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
+    "eslint": "^8.15.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2",
+    "rollup": "^2.73.0",
+    "rollup-plugin-ts": "^2.0.7",
+    "tslib": "^2.4.0",
+    "typescript": "^4.6.4"
+  }
+}
