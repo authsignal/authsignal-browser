@@ -1,5 +1,5 @@
-import {default as basicLightbox} from "basiclightbox";
-import FingerprintJS, {Agent} from "@fingerprintjs/fingerprintjs";
+import * as basicLightbox from "basiclightbox";
+import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 import {setCookie, generateId, getCookieDomain, getCookie, getHostWithProtocol, reformatDate} from "./helpers";
 import {
@@ -16,7 +16,6 @@ export function authsignalClient(publishableKey: string, options?: AuthsignalOpt
   client.init(publishableKey, options);
   return client;
 }
-
 export class AuthsignalClient {
   private anonymousId = "";
   private initialized = false;
@@ -25,7 +24,7 @@ export class AuthsignalClient {
   private idCookieName = "";
   private trackingHost = "";
   // Could do with a fingerprintClient interface
-  private fingerprintClient?: Agent;
+  private fingerprintClient?: FingerprintJS.Agent;
   private deviceFingerprint?: string;
 
   async init(publishableKey: string, options?: AuthsignalOptions): Promise<void> {
