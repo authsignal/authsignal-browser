@@ -9,7 +9,7 @@ import {
   RegisterAnonymousIdRequest,
   RegisterIdentityRequest,
   UserProps,
-} from "./interfaces";
+} from "./types";
 
 export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalClient {
   const client = new AuthsignalClient();
