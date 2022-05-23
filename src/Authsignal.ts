@@ -134,7 +134,7 @@ export class AuthsignalClient {
     };
   }
 
-  private sendJson(path: string, payload: any) {
+  private sendJson(path: string, payload: unknown) {
     const jsonString = JSON.stringify(payload);
     const url = `${this.trackingHost}/api/v1/client/${path}?publishableKey=${this.publishableKey}`;
 
@@ -146,7 +146,7 @@ export class AuthsignalClient {
   private xmlHttpReqTransport(url: string, json: string): Promise<void> {
     const req = new XMLHttpRequest();
     return new Promise((resolve, reject) => {
-      req.onerror = (e) => {
+      req.onerror = () => {
         reject(new Error(`Failed to send JSON. See console logs`));
       };
       req.onload = () => {

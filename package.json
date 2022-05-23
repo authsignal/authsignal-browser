@@ -4,6 +4,7 @@
   "scripts": {
     "typecheck": "tsc",
     "clean": "rm -rf ./dist",
+    "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "build": "rollup --configPlugin rollup-plugin-ts --config rollup.config.ts"
   },
   "files": [
