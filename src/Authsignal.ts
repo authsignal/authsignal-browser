@@ -1,5 +1,4 @@
-import {default as basicLightbox} from "basiclightbox";
-import FingerprintJS, {Agent} from "@fingerprintjs/fingerprintjs";
+import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 import {setCookie, generateId, getCookieDomain, getCookie, getHostWithProtocol, reformatDate} from "./helpers";
 import {
@@ -9,14 +8,14 @@ import {
   RegisterAnonymousIdRequest,
   RegisterIdentityRequest,
   UserProps,
-} from "./interfaces";
+} from "./types";
+import {PopupHandler} from "./PopupHandler";
 
 export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalClient {
   const client = new AuthsignalClient();
   client.init(publishableKey, options);
   return client;
 }
-
 export class AuthsignalClient {
   private anonymousId = "";
   private initialized = false;
@@ -25,7 +24,7 @@ export class AuthsignalClient {
   private idCookieName = "";
   private trackingHost = "";
   // Could do with a fingerprintClient interface
-  private fingerprintClient?: Agent;
+  private fingerprintClient?: FingerprintJS.Agent;
   private deviceFingerprint?: string;
 
   async init(publishableKey: string, options?: AuthsignalOptions): Promise<void> {
@@ -78,19 +77,18 @@ export class AuthsignalClient {
     return {idCookie: newId, generated: true};
   }
 
-  handleChallenge(challenge: AuthsignalChallenge): Promise<boolean> {
-    const lightbox = basicLightbox.create(
-      `<iframe name="authsignal" src="${challenge.challengeUrl}" width="600" height="100%" frameborder="0"></iframe>`
-    );
+  challengeWithPopup({challengeUrl}: AuthsignalChallenge): Promise<boolean> {
+    const Popup = new PopupHandler();
 
-    lightbox.show();
+    Popup.show({challengeUrl});
+
     return new Promise<boolean>((resolve, reject) => {
       const handleChallenge = (event: MessageEvent) => {
         if (event.data === "authsignal-challenge-success") {
-          lightbox.close();
+          Popup.close();
           resolve(true);
         } else if (event.data === "authsignal-challenge-failure") {
-          lightbox.close();
+          Popup.close();
           reject(false);
         }
       };
@@ -135,7 +133,7 @@ export class AuthsignalClient {
     };
   }
 
-  private sendJson(path: string, payload: any) {
+  private sendJson(path: string, payload: unknown) {
     const jsonString = JSON.stringify(payload);
     const url = `${this.trackingHost}/api/v1/client/${path}?publishableKey=${this.publishableKey}`;
 
@@ -147,7 +145,7 @@ export class AuthsignalClient {
   private xmlHttpReqTransport(url: string, json: string): Promise<void> {
     const req = new XMLHttpRequest();
     return new Promise((resolve, reject) => {
-      req.onerror = (e) => {
+      req.onerror = () => {
         reject(new Error(`Failed to send JSON. See console logs`));
       };
       req.onload = () => {

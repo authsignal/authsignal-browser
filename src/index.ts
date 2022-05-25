@@ -1,3 +1,2 @@
-import { AuthsignalClient, authsignalClient } from "./Authsignal";
-
-export { AuthsignalClient, authsignalClient };
+export {AuthsignalClient, authsignalClient} from "./Authsignal";
+export * from "./types";

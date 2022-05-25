@@ -4,6 +4,7 @@
   "scripts": {
     "typecheck": "tsc",
     "clean": "rm -rf ./dist",
+    "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "build": "rollup --configPlugin rollup-plugin-ts --config rollup.config.ts"
   },
   "files": [
@@ -27,10 +28,13 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.3",
-    "basiclightbox": "^5.0.4",
+    "a11y-dialog": "^7.4.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@types/basiclightbox": "^5.0.1",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
