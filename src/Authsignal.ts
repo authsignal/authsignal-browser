@@ -1,4 +1,3 @@
-import * as basicLightbox from "basiclightbox";
 import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 import {setCookie, generateId, getCookieDomain, getCookie, getHostWithProtocol, reformatDate} from "./helpers";
@@ -10,6 +9,7 @@ import {
   RegisterIdentityRequest,
   UserProps,
 } from "./types";
+import {PopupHandler} from "./PopupHandler";
 
 export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalClient {
   const client = new AuthsignalClient();
@@ -77,19 +77,18 @@ export class AuthsignalClient {
     return {idCookie: newId, generated: true};
   }
 
-  handleChallenge(challenge: AuthsignalChallenge): Promise<boolean> {
-    const lightbox = basicLightbox.create(
-      `<iframe name="authsignal" src="${challenge.challengeUrl}" width="600" height="100%" frameborder="0"></iframe>`
-    );
+  challengeWithPopup({challengeUrl}: AuthsignalChallenge): Promise<boolean> {
+    const Popup = new PopupHandler();
 
-    lightbox.show();
+    Popup.show({challengeUrl});
+
     return new Promise<boolean>((resolve, reject) => {
       const handleChallenge = (event: MessageEvent) => {
         if (event.data === "authsignal-challenge-success") {
-          lightbox.close();
+          Popup.close();
           resolve(true);
         } else if (event.data === "authsignal-challenge-failure") {
-          lightbox.close();
+          Popup.close();
           reject(false);
         }
       };
