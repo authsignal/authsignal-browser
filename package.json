@@ -1,30 +1,19 @@
 {
-  "name": "authsignal-browser",
+  "name": "@authsignal/browser",
+  "type": "module",
   "version": "0.0.1",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "keywords": ["authsignal", "mfa", "2fa", "authentication"],
+  "license": "MIT",
+  "repository": "git://github.com/authsignal/authsignal-browser.git",
+  "sideEffects": false,
   "scripts": {
     "typecheck": "tsc",
     "clean": "rm -rf ./dist",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
     "build": "rollup --configPlugin rollup-plugin-ts --config rollup.config.ts"
-  },
-  "files": [
-    "dist"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/authsignal/authsignal-browser.git"
-  },
-  "sideEffects": false,
-  "type": "module",
-  "types": "dist/index.d.ts",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "exports": {
-    ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "types": "./dist/index.d.ts"
-    }
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.3",
@@ -46,5 +35,13 @@
     "rollup-plugin-ts": "^2.0.7",
     "tslib": "^2.4.0",
     "typescript": "^4.6.4"
+  },
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/index.d.ts"
+    }
   }
 }
