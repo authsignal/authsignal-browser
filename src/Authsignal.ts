@@ -77,6 +77,10 @@ export class AuthsignalClient {
     return {idCookie: newId, generated: true};
   }
 
+  challengeWithRedirect({challengeUrl}: AuthsignalChallenge) {
+    window.location.href = challengeUrl;
+  }
+
   challengeWithPopup({challengeUrl}: AuthsignalChallenge): Promise<boolean> {
     const Popup = new PopupHandler();
 
