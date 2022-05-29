@@ -27,10 +27,10 @@ export class AuthsignalClient {
   private deviceFingerprint?: string;
 
   async init(publishableKey: string, options?: AuthsignalOptions): Promise<void> {
-    this.cookieDomain = options?.cookie_domain || getCookieDomain();
-    this.idCookieName = options?.cookie_name || "__as_aid";
+    this.cookieDomain = options?.cookieDomain || getCookieDomain();
+    this.idCookieName = options?.cookieName || "__as_aid";
 
-    this.trackingHost = getHostWithProtocol(options?.tracking_host || "t.authsignal.com");
+    this.trackingHost = getHostWithProtocol(options?.trackingHost || "t.authsignal.com");
     this.fingerprintClient = await FingerprintJS.load({
       monitoring: false,
     });
