@@ -1,5 +1,4 @@
 export type AuthsignalChallenge = {
-  accessToken: string;
   challengeUrl: string;
 };
 
