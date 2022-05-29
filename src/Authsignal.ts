@@ -18,7 +18,6 @@ export function authsignalClient(publishableKey: string, options?: AuthsignalOpt
 }
 export class AuthsignalClient {
   private anonymousId = "";
-  private initialized = false;
   private publishableKey = "";
   private cookieDomain = "";
   private idCookieName = "";
@@ -54,8 +53,6 @@ export class AuthsignalClient {
       const registerAnonymousIdRequest = this.buildRegisterAnonymousIdRequest();
       await this.registerAnonymousId(registerAnonymousIdRequest);
     }
-
-    this.initialized = true;
   }
 
   async identify(props: UserProps): Promise<void> {
