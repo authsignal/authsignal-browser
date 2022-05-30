@@ -11,7 +11,7 @@ import {
 } from "./types";
 import {PopupHandler} from "./PopupHandler";
 
-export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalBrowser {
+export function authsignalBrowser(publishableKey: string, options?: AuthsignalOptions): AuthsignalBrowser {
   const client = new AuthsignalBrowser();
   client.init(publishableKey, options);
   return client;
@@ -74,28 +74,30 @@ export class AuthsignalBrowser {
     return {idCookie: newId, generated: true};
   }
 
-  challengeWithRedirect({challengeUrl}: AuthsignalChallenge) {
-    window.location.href = challengeUrl;
-  }
+  challenge(authsignalChallenge: {mode?: "redirect"} & AuthsignalChallenge): undefined;
+  challenge(authsignalChallenge: {mode: "popup"} & AuthsignalChallenge): Promise<boolean>;
+  challenge({challengeUrl, mode = "redirect"}: AuthsignalChallenge) {
+    if (mode === "redirect") {
+      window.location.href = challengeUrl;
+    } else {
+      const Popup = new PopupHandler();
 
-  challengeWithPopup({challengeUrl}: AuthsignalChallenge): Promise<boolean> {
-    const Popup = new PopupHandler();
+      Popup.show({challengeUrl: challengeUrl});
 
-    Popup.show({challengeUrl});
+      return new Promise<boolean>((resolve, reject) => {
+        const handleChallenge = (event: MessageEvent) => {
+          if (event.data === "authsignal-challenge-success") {
+            Popup.close();
+            resolve(true);
+          } else if (event.data === "authsignal-challenge-failure") {
+            Popup.close();
+            reject(false);
+          }
+        };
 
-    return new Promise<boolean>((resolve, reject) => {
-      const handleChallenge = (event: MessageEvent) => {
-        if (event.data === "authsignal-challenge-success") {
-          Popup.close();
-          resolve(true);
-        } else if (event.data === "authsignal-challenge-failure") {
-          Popup.close();
-          reject(false);
-        }
-      };
-
-      window.addEventListener("message", handleChallenge, false);
-    });
+        window.addEventListener("message", handleChallenge, false);
+      });
+    }
   }
 
   private async registerIdentity(request: RegisterIdentityRequest): Promise<void> {

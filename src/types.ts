@@ -1,5 +1,6 @@
 export type AuthsignalChallenge = {
   challengeUrl: string;
+  mode?: "popup" | "redirect";
 };
 
 export type AnnoymousId = {
