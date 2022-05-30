@@ -1,14 +1,16 @@
 import A11yDialog from "a11y-dialog";
 import {Challenge} from "./types";
 
-const DIALOG_CONTAINER_ID = "authsignal-popup";
-const DIALOG_CONTENT_ID = "authsignal-popup-content";
+const CONTAINER_ID = "__authsignal-popup-container";
+const CONTENT_ID = "__authsignal-popup-content";
+const OVERLAY_ID = "__authsignal-popup-overlay";
+const STYLE_ID = "__authsignal-popup-style";
 
 class PopupHandler {
   private popup: A11yDialog | null = null;
 
   constructor() {
-    if (document.querySelector(`#${DIALOG_CONTAINER_ID}`)) {
+    if (document.querySelector(`#${CONTAINER_ID}`)) {
       throw new Error("Multiple instances of Authsignal popup is not supported.");
     }
 
@@ -16,34 +18,71 @@ class PopupHandler {
   }
 
   create() {
-    // Dialog container
+    // Create dialog container
     const container = document.createElement("div");
-    container.setAttribute("id", DIALOG_CONTAINER_ID);
+    container.setAttribute("id", CONTAINER_ID);
     container.setAttribute("aria-hidden", "true");
-    container.setAttribute("class", "dialog-container");
 
-    // Dialog overlay
+    // Create dialog overlay
     const overlay = document.createElement("div");
-    overlay.setAttribute("class", "dialog-overlay");
+    overlay.setAttribute("id", OVERLAY_ID);
     overlay.setAttribute("data-a11y-dialog-hide", "true");
-    container.appendChild(overlay);
 
-    // Dialog content
+    // Create dialog content
     const content = document.createElement("div");
-    content.setAttribute("class", "dialog-content");
-    content.setAttribute("id", DIALOG_CONTENT_ID);
-    container.appendChild(content);
+    content.setAttribute("id", CONTENT_ID);
 
     document.body.appendChild(container);
+
+    // Create CSS for dialog
+    const style = document.createElement("style");
+    style.setAttribute("id", STYLE_ID);
+    style.textContent = `
+      #${CONTAINER_ID},
+      #${OVERLAY_ID} {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      #${CONTAINER_ID} {
+        z-index: 2;
+        display: flex;
+      }
+
+      #${CONTAINER_ID}[aria-hidden='true'] {
+        display: none;
+      }
+
+      #${OVERLAY_ID} {
+        background-color: rgba(43, 46, 56, 0.9);
+      }
+
+      #${CONTENT_ID} {
+        margin: auto;
+        z-index: 2;
+        position: relative;
+        background-color: white;
+      }
+    `;
+
+    // Attach the created elements
+    document.head.insertAdjacentElement("beforeend", style);
+    container.appendChild(overlay);
+    container.appendChild(content);
 
     this.popup = new A11yDialog(container);
     this.popup.on("hide", this.destroy);
   }
 
   destroy() {
-    const dialogEl = document.querySelector(`#${DIALOG_CONTAINER_ID}`);
-    if (dialogEl) {
+    const dialogEl = document.querySelector(`#${CONTAINER_ID}`);
+    const styleEl = document.querySelector(`#${STYLE_ID}`);
+    if (dialogEl && styleEl) {
       document.body.removeChild(dialogEl);
+      document.head.removeChild(styleEl);
     }
   }
 
@@ -60,7 +99,7 @@ class PopupHandler {
     iframe.setAttribute("height", "600");
     iframe.setAttribute("frameborder", "0");
 
-    const dialogContent = document.querySelector(`#${DIALOG_CONTENT_ID}`);
+    const dialogContent = document.querySelector(`#${CONTENT_ID}`);
     if (dialogContent) {
       dialogContent.appendChild(iframe);
     }
