@@ -1,9 +1,13 @@
-export type AuthsignalChallenge = {
+export type Challenge = {
   challengeUrl: string;
   mode?: "popup" | "redirect";
 };
 
-export type AnnoymousId = {
+export type Mfa = {
+  url: string;
+};
+
+export type AnonymousId = {
   idCookie: string;
   generated: boolean;
 };

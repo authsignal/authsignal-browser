@@ -2,12 +2,13 @@ import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 import {setCookie, generateId, getCookieDomain, getCookie, getHostWithProtocol, reformatDate} from "./helpers";
 import {
-  AuthsignalChallenge,
+  Challenge,
   AuthsignalOptions,
-  AnnoymousId,
+  AnonymousId,
   RegisterAnonymousIdRequest,
   RegisterIdentityRequest,
   UserProps,
+  Mfa,
 } from "./types";
 import {PopupHandler} from "./PopupHandler";
 
@@ -62,7 +63,7 @@ export class AuthsignalBrowser {
     return await this.registerIdentity(request);
   }
 
-  getAnonymousId(): AnnoymousId {
+  private getAnonymousId(): AnonymousId {
     const idCookie = getCookie(this.idCookieName);
     if (idCookie) {
       return {idCookie, generated: false};
@@ -74,9 +75,13 @@ export class AuthsignalBrowser {
     return {idCookie: newId, generated: true};
   }
 
-  challenge(authsignalChallenge: {mode?: "redirect"} & AuthsignalChallenge): undefined;
-  challenge(authsignalChallenge: {mode: "popup"} & AuthsignalChallenge): Promise<boolean>;
-  challenge({challengeUrl, mode = "redirect"}: AuthsignalChallenge) {
+  mfa({url}: Mfa) {
+    window.location.href = url;
+  }
+
+  challenge(authsignalChallenge: {mode?: "redirect"} & Challenge): undefined;
+  challenge(authsignalChallenge: {mode: "popup"} & Challenge): Promise<boolean>;
+  challenge({challengeUrl, mode = "redirect"}: Challenge) {
     if (mode === "redirect") {
       window.location.href = challengeUrl;
     } else {
