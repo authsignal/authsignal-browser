@@ -1,5 +1,5 @@
 import A11yDialog from "a11y-dialog";
-import {AuthsignalChallenge} from "./types";
+import {Challenge} from "./types";
 
 const DIALOG_CONTAINER_ID = "authsignal-popup";
 const DIALOG_CONTENT_ID = "authsignal-popup-content";
@@ -47,7 +47,7 @@ class PopupHandler {
     }
   }
 
-  show({challengeUrl}: {challengeUrl: AuthsignalChallenge["challengeUrl"]}) {
+  show({challengeUrl}: {challengeUrl: Challenge["challengeUrl"]}) {
     if (!this.popup) {
       throw new Error("Popup is not initialized");
     }

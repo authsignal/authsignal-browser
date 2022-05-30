@@ -79,8 +79,8 @@ export class AuthsignalBrowser {
     window.location.href = url;
   }
 
-  challenge(authsignalChallenge: {mode?: "redirect"} & Challenge): undefined;
-  challenge(authsignalChallenge: {mode: "popup"} & Challenge): Promise<boolean>;
+  challenge(challenge: {mode?: "redirect"} & Challenge): undefined;
+  challenge(challenge: {mode: "popup"} & Challenge): Promise<boolean>;
   challenge({challengeUrl, mode = "redirect"}: Challenge) {
     if (mode === "redirect") {
       window.location.href = challengeUrl;
