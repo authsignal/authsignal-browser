@@ -1,8 +1,13 @@
-export type AuthsignalChallenge = {
+export type Challenge = {
   challengeUrl: string;
+  mode?: "popup" | "redirect";
 };
 
-export type AnnoymousId = {
+export type Mfa = {
+  url: string;
+};
+
+export type AnonymousId = {
   idCookie: string;
   generated: boolean;
 };
@@ -38,17 +43,17 @@ export type AuthsignalOptions = {
    * Cookie domain that will be used to identify
    * users. If not set, location.hostname will be used
    */
-  cookie_domain?: string;
+  cookieDomain?: string;
   /**
    * Tracking host (where API calls will be sent). If not set,
    * we'd try to do the best to "guess" it. Last resort is t.authsignal.com.
    *
    * Though this parameter is not required, it's highly recommended to set is explicitly
    */
-  tracking_host?: string;
+  trackingHost?: string;
 
   /**
    * Name of id cookie. __eventn_id by default
    */
-  cookie_name?: string;
+  cookieName?: string;
 };

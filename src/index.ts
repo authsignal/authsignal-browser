@@ -1,2 +1,2 @@
-export {AuthsignalClient, authsignalClient} from "./Authsignal";
+export {authsignalBrowser, AuthsignalBrowser} from "./AuthsignalBrowser";
 export * from "./types";

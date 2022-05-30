@@ -2,23 +2,23 @@ import * as FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 import {setCookie, generateId, getCookieDomain, getCookie, getHostWithProtocol, reformatDate} from "./helpers";
 import {
-  AuthsignalChallenge,
+  Challenge,
   AuthsignalOptions,
-  AnnoymousId,
+  AnonymousId,
   RegisterAnonymousIdRequest,
   RegisterIdentityRequest,
   UserProps,
+  Mfa,
 } from "./types";
 import {PopupHandler} from "./PopupHandler";
 
-export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalClient {
-  const client = new AuthsignalClient();
+export function authsignalBrowser(publishableKey: string, options?: AuthsignalOptions): AuthsignalBrowser {
+  const client = new AuthsignalBrowser();
   client.init(publishableKey, options);
   return client;
 }
-export class AuthsignalClient {
+export class AuthsignalBrowser {
   private anonymousId = "";
-  private initialized = false;
   private publishableKey = "";
   private cookieDomain = "";
   private idCookieName = "";
@@ -28,10 +28,10 @@ export class AuthsignalClient {
   private deviceFingerprint?: string;
 
   async init(publishableKey: string, options?: AuthsignalOptions): Promise<void> {
-    this.cookieDomain = options?.cookie_domain || getCookieDomain();
-    this.idCookieName = options?.cookie_name || "__as_aid";
+    this.cookieDomain = options?.cookieDomain || getCookieDomain();
+    this.idCookieName = options?.cookieName || "__as_aid";
 
-    this.trackingHost = getHostWithProtocol(options?.tracking_host || "t.authsignal.com");
+    this.trackingHost = getHostWithProtocol(options?.trackingHost || "t.authsignal.com");
     this.fingerprintClient = await FingerprintJS.load({
       monitoring: false,
     });
@@ -54,8 +54,6 @@ export class AuthsignalClient {
       const registerAnonymousIdRequest = this.buildRegisterAnonymousIdRequest();
       await this.registerAnonymousId(registerAnonymousIdRequest);
     }
-
-    this.initialized = true;
   }
 
   async identify(props: UserProps): Promise<void> {
@@ -65,7 +63,7 @@ export class AuthsignalClient {
     return await this.registerIdentity(request);
   }
 
-  getAnonymousId(): AnnoymousId {
+  private getAnonymousId(): AnonymousId {
     const idCookie = getCookie(this.idCookieName);
     if (idCookie) {
       return {idCookie, generated: false};
@@ -77,28 +75,34 @@ export class AuthsignalClient {
     return {idCookie: newId, generated: true};
   }
 
-  challengeWithRedirect({challengeUrl}: AuthsignalChallenge) {
-    window.location.href = challengeUrl;
+  mfa({url}: Mfa) {
+    window.location.href = url;
   }
 
-  challengeWithPopup({challengeUrl}: AuthsignalChallenge): Promise<boolean> {
-    const Popup = new PopupHandler();
+  challenge(challenge: {mode?: "redirect"} & Challenge): undefined;
+  challenge(challenge: {mode: "popup"} & Challenge): Promise<boolean>;
+  challenge({challengeUrl, mode = "redirect"}: Challenge) {
+    if (mode === "redirect") {
+      window.location.href = challengeUrl;
+    } else {
+      const Popup = new PopupHandler();
 
-    Popup.show({challengeUrl});
+      Popup.show({challengeUrl: challengeUrl});
 
-    return new Promise<boolean>((resolve, reject) => {
-      const handleChallenge = (event: MessageEvent) => {
-        if (event.data === "authsignal-challenge-success") {
-          Popup.close();
-          resolve(true);
-        } else if (event.data === "authsignal-challenge-failure") {
-          Popup.close();
-          reject(false);
-        }
-      };
+      return new Promise<boolean>((resolve, reject) => {
+        const handleChallenge = (event: MessageEvent) => {
+          if (event.data === "authsignal-challenge-success") {
+            Popup.close();
+            resolve(true);
+          } else if (event.data === "authsignal-challenge-failure") {
+            Popup.close();
+            reject(false);
+          }
+        };
 
-      window.addEventListener("message", handleChallenge, false);
-    });
+        window.addEventListener("message", handleChallenge, false);
+      });
+    }
   }
 
   private async registerIdentity(request: RegisterIdentityRequest): Promise<void> {
