@@ -11,12 +11,12 @@ import {
 } from "./types";
 import {PopupHandler} from "./PopupHandler";
 
-export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalClient {
-  const client = new AuthsignalClient();
+export function authsignalClient(publishableKey: string, options?: AuthsignalOptions): AuthsignalBrowser {
+  const client = new AuthsignalBrowser();
   client.init(publishableKey, options);
   return client;
 }
-export class AuthsignalClient {
+export class AuthsignalBrowser {
   private anonymousId = "";
   private publishableKey = "";
   private cookieDomain = "";
