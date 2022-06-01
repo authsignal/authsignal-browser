@@ -12,11 +12,6 @@ import {
 } from "./types";
 import {PopupHandler} from "./PopupHandler";
 
-export function authsignalBrowser(publishableKey: string, options?: AuthsignalOptions): AuthsignalBrowser {
-  const client = new AuthsignalBrowser();
-  client.init(publishableKey, options);
-  return client;
-}
 export class AuthsignalBrowser {
   private anonymousId = "";
   private publishableKey = "";
@@ -27,33 +22,35 @@ export class AuthsignalBrowser {
   private fingerprintClient?: FingerprintJS.Agent;
   private deviceFingerprint?: string;
 
-  async init(publishableKey: string, options?: AuthsignalOptions): Promise<void> {
-    this.cookieDomain = options?.cookieDomain || getCookieDomain();
-    this.idCookieName = options?.cookieName || "__as_aid";
+  constructor(publishableKey: string, options?: AuthsignalOptions) {
+    return (async () => {
+      this.cookieDomain = options?.cookieDomain || getCookieDomain();
+      this.idCookieName = options?.cookieName || "__as_aid";
 
-    this.trackingHost = getHostWithProtocol(options?.trackingHost || "t.authsignal.com");
-    this.fingerprintClient = await FingerprintJS.load({
-      monitoring: false,
-    });
+      this.trackingHost = getHostWithProtocol(options?.trackingHost || "t.authsignal.com");
+      this.fingerprintClient = await FingerprintJS.load({
+        monitoring: false,
+      });
 
-    const anonymousId = this.getAnonymousId();
-    this.anonymousId = anonymousId.idCookie;
-    const isGeneratedAnonymousId = anonymousId.generated;
+      const anonymousId = this.getAnonymousId();
+      this.anonymousId = anonymousId.idCookie;
+      const isGeneratedAnonymousId = anonymousId.generated;
 
-    const agent = await this.fingerprintClient.get();
-    this.deviceFingerprint = agent.visitorId;
+      const agent = await this.fingerprintClient.get();
+      this.deviceFingerprint = agent.visitorId;
 
-    if (!publishableKey) {
-      throw Error("IntegrationError");
-    }
-    this.publishableKey = publishableKey;
+      if (!publishableKey) {
+        throw Error("IntegrationError");
+      }
+      this.publishableKey = publishableKey;
 
-    // If the anonymous Id is newly generated
-    // register it to the authsignal backend
-    if (isGeneratedAnonymousId) {
-      const registerAnonymousIdRequest = this.buildRegisterAnonymousIdRequest();
-      await this.registerAnonymousId(registerAnonymousIdRequest);
-    }
+      // If the anonymous Id is newly generated
+      // register it to the authsignal backend
+      if (isGeneratedAnonymousId) {
+        const registerAnonymousIdRequest = this.buildRegisterAnonymousIdRequest();
+        await this.registerAnonymousId(registerAnonymousIdRequest);
+      }
+    })() as unknown as AuthsignalBrowser;
   }
 
   async identify(props: UserProps): Promise<void> {
