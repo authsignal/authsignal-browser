@@ -65,6 +65,14 @@ class PopupHandler {
         z-index: 2;
         position: relative;
         background-color: white;
+        height: 600px;
+        width: 600px;
+        border-radius: 5px;
+      }
+
+      #${CONTENT_ID} iframe {
+        width: 100%;
+        height: 100%;
       }
     `;
 
@@ -95,8 +103,6 @@ class PopupHandler {
     iframe.setAttribute("name", "authsignal");
     iframe.setAttribute("title", "Authsignal multi-factor authentication challenge");
     iframe.setAttribute("src", challengeUrl);
-    iframe.setAttribute("width", "600");
-    iframe.setAttribute("height", "600");
     iframe.setAttribute("frameborder", "0");
 
     const dialogContent = document.querySelector(`#${CONTENT_ID}`);
