@@ -107,14 +107,14 @@ export class AuthsignalBrowser {
 
   private async registerIdentity(request: RegisterIdentityRequest): Promise<void> {
     console.log(request);
-    const result = await this.sendJson("/identity", request);
+    const result = await this.sendJson("identity", request);
 
     return result;
   }
 
   private async registerAnonymousId(request: RegisterAnonymousIdRequest): Promise<void> {
     console.log(request);
-    const result = await this.sendJson("/register", request);
+    const result = await this.sendJson("register", request);
 
     return result;
   }
