@@ -8,7 +8,7 @@ export type Mfa = {
 };
 
 export type AuthsignalOptions = {
-  publishableKey?: string;
+  publishableKey: string;
   /**
    * Cookie domain that will be used to identify
    * users. If not set, location.hostname will be used
