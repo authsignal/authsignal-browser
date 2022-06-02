@@ -7,38 +7,8 @@ export type Mfa = {
   url: string;
 };
 
-export type AnonymousId = {
-  idCookie: string;
-  generated: boolean;
-};
-
-export type RegisterAnonymousIdRequest = {
-  deviceFingerprint: string;
-  anonymousId: string;
-  sourceHost: string;
-  utcTime: string;
-  clientData: {
-    userAgent: string;
-    fonts?: string;
-    language?: string;
-    tzOffset?: number;
-    screenResolution?: string;
-    viewPort?: string;
-  };
-};
-
-export interface RegisterIdentityRequest {
-  anonymousId: string;
-  id?: string;
-  email?: string;
-}
-
-export interface UserProps {
-  id?: string;
-  email?: string;
-}
-
 export type AuthsignalOptions = {
+  publishableKey?: string;
   /**
    * Cookie domain that will be used to identify
    * users. If not set, location.hostname will be used
