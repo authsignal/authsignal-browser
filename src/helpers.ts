@@ -1,6 +1,12 @@
-import {v4 as uuidv4} from "uuid";
+type CookieOptions = {
+  name: string;
+  value: string;
+  expire: number;
+  domain: string;
+  secure: boolean;
+};
 
-export const setCookie = (name: string, value: string, expire: number, domain: string, secure: boolean): void => {
+export const setCookie = ({name, value, expire, domain, secure}: CookieOptions): void => {
   const expireString = expire === Infinity ? " expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + expire;
   document.cookie =
     encodeURIComponent(name) +
@@ -13,11 +19,7 @@ export const setCookie = (name: string, value: string, expire: number, domain: s
 };
 
 export const getCookieDomain = (): string => {
-  return location.hostname.replace("www.", "");
-};
-
-export const generateId = (): string => {
-  return uuidv4();
+  return document.location.hostname.replace("www.", "");
 };
 
 export const getCookie = (name: string) => {
@@ -34,30 +36,4 @@ export const getCookie = (name: string) => {
       )
     ) || null
   );
-};
-
-export const getHostWithProtocol = (host: string) => {
-  while (endsWith(host, "/")) {
-    host = host.substr(0, host.length - 1);
-  }
-  if (host.indexOf("https://") === 0 || host.indexOf("http://") === 0) {
-    return host;
-  } else {
-    return "//" + host;
-  }
-};
-
-function endsWith(str: string, suffix: string) {
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
-
-export const reformatDate = (strDate: string) => {
-  const end = strDate.split(".")[1];
-  if (!end) {
-    return strDate;
-  }
-  if (end.length >= 7) {
-    return strDate;
-  }
-  return strDate.slice(0, -1) + "0".repeat(7 - end.length) + "Z";
 };
