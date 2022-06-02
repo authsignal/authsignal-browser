@@ -7,17 +7,17 @@ import {PopupHandler} from "./PopupHandler";
 export class AuthsignalBrowser {
   private anonymousId = "";
   private cookieDomain = "";
-  private idCookieName = "";
+  private anonymousIdCookieName = "";
 
   constructor({cookieDomain, cookieName}: AuthsignalOptions) {
     this.cookieDomain = cookieDomain || getCookieDomain();
-    this.idCookieName = cookieName || "__as_aid";
+    this.anonymousIdCookieName = cookieName || "__as_aid";
 
-    const idCookie = getCookie(this.idCookieName);
+    const idCookie = getCookie(this.anonymousIdCookieName);
     if (!idCookie) {
       this.anonymousId = uuidv4();
       setCookie({
-        name: this.idCookieName,
+        name: this.anonymousIdCookieName,
         value: this.anonymousId,
         expire: Infinity,
         domain: this.cookieDomain,
