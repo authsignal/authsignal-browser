@@ -8,8 +8,10 @@ export class AuthsignalBrowser {
   private anonymousId = "";
   private cookieDomain = "";
   private anonymousIdCookieName = "";
+  private publishableKey = "";
 
-  constructor({cookieDomain, cookieName}: AuthsignalOptions) {
+  constructor({publishableKey, cookieDomain, cookieName}: AuthsignalOptions) {
+    this.publishableKey = publishableKey;
     this.cookieDomain = cookieDomain || getCookieDomain();
     this.anonymousIdCookieName = cookieName || "__as_aid";
 
