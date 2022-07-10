@@ -1,1 +1,28 @@
-# authsignal-browser
+# Authsignal Browser Javascript SDK
+
+**[Authsignal](https://www.authsignal.com) provides passwordless step up authentication (Multi-factor Authentication - MFA) that can be placed anywhere within your application. Authsignal also provides a node-code fraud risk rules engine to manage when step up challenges are triggered.**
+
+
+## Usage
+
+The Authsignal Browser API can be used to launch the Authsignal Prebuilt MFA page to let users set up MFA and complete challenges.
+
+See the [documentation](https://docs.authsignal.com) for details on how to use this SDK with the Authsignal Server APIs.
+
+### Server SDKs
+[NodeJS](https://www.npmjs.com/package/@authsignal/node)
+
+## Installation
+
+Add the `@authsignal/browser` package to your `package.json`.
+
+### npm
+```bash
+npm install @authsignal/browser
+```
+
+### yarn
+
+```bash
+yarn add @authsignal/browser
+```
