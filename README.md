@@ -1,6 +1,6 @@
 # Authsignal Browser Javascript SDK
 
-**[Authsignal](https://www.authsignal.com) provides passwordless step up authentication (Multi-factor Authentication - MFA) that can be placed anywhere within your application. Authsignal also provides a node-code fraud risk rules engine to manage when step up challenges are triggered.**
+**[Authsignal](https://www.authsignal.com) provides passwordless step up authentication (Multi-factor Authentication - MFA) that can be placed anywhere within your application. Authsignal also provides a no-code fraud risk rules engine to manage when step up challenges are triggered.**
 
 
 ## Usage
