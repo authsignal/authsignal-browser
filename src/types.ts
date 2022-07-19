@@ -1,10 +1,11 @@
-export type Challenge = {
+export type ChallengeInput = {
   challengeUrl: string;
   mode?: "popup" | "redirect";
 };
 
-export type Mfa = {
+export type MfaInput = {
   url: string;
+  mode?: "popup" | "redirect";
 };
 
 export type AuthsignalOptions = {

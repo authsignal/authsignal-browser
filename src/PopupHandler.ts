@@ -1,10 +1,13 @@
 import A11yDialog from "a11y-dialog";
-import {Challenge} from "./types";
 
 const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
 const OVERLAY_ID = "__authsignal-popup-overlay";
 const STYLE_ID = "__authsignal-popup-style";
+
+type PopupShowInput = {
+  url: string;
+};
 
 class PopupHandler {
   private popup: A11yDialog | null = null;
@@ -94,15 +97,15 @@ class PopupHandler {
     }
   }
 
-  show({challengeUrl}: {challengeUrl: Challenge["challengeUrl"]}) {
+  show({url}: PopupShowInput) {
     if (!this.popup) {
       throw new Error("Popup is not initialized");
     }
 
     const iframe = document.createElement("iframe");
     iframe.setAttribute("name", "authsignal");
-    iframe.setAttribute("title", "Authsignal multi-factor authentication challenge");
-    iframe.setAttribute("src", challengeUrl);
+    iframe.setAttribute("title", "Authsignal multi-factor authentication");
+    iframe.setAttribute("src", url);
     iframe.setAttribute("frameborder", "0");
 
     const dialogContent = document.querySelector(`#${CONTENT_ID}`);
