@@ -51,7 +51,7 @@ class PopupHandler {
       }
 
       #${CONTAINER_ID} {
-        z-index: 2;
+        z-index: 2147483647;
         display: flex;
       }
 
@@ -65,7 +65,7 @@ class PopupHandler {
 
       #${CONTENT_ID} {
         margin: auto;
-        z-index: 2;
+        z-index: 2147483647;
         position: relative;
         background-color: white;
         height: 600px;
