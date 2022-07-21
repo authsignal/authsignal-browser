@@ -1,5 +1,9 @@
-export type HandleUrlInput = {
-  url: string;
+export type ChallengeInput = {
+  challengeUrl: string;
+  mode?: "popup" | "redirect";
+};
+
+export type LaunchOptions = {
   mode?: "popup" | "redirect";
 };
 

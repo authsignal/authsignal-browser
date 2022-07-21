@@ -1,7 +1,7 @@
 import {v4 as uuidv4} from "uuid";
 
 import {setCookie, getCookieDomain, getCookie} from "./helpers";
-import {AuthsignalOptions, AuthsignalWindowMessage, HandleUrlInput} from "./types";
+import {AuthsignalOptions, AuthsignalWindowMessage, ChallengeInput, LaunchOptions} from "./types";
 import {PopupHandler} from "./popup-handler";
 
 const DEFAULT_ENDPOINT = "https://mfa.authsignal.com/";
@@ -35,9 +35,23 @@ export class AuthsignalBrowser {
     }
   }
 
-  handleUrl(input: {mode?: "redirect"} & HandleUrlInput): undefined;
-  handleUrl(input: {mode: "popup"} & HandleUrlInput): Promise<boolean>;
-  handleUrl({url, mode = "redirect"}: HandleUrlInput) {
+  /**
+   * @deprecated Use launch() instead.
+   */
+  challenge(challenge: {mode?: "redirect"} & ChallengeInput): undefined;
+  challenge(challenge: {mode: "popup"} & ChallengeInput): Promise<boolean>;
+  challenge({mode, challengeUrl: url}: ChallengeInput) {
+    if (mode === "popup") {
+      return this.launch(url, {mode});
+    }
+    return this.launch(url, {mode});
+  }
+
+  launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
+  launch(url: string, options?: {mode: "popup"} & LaunchOptions): Promise<boolean>;
+  launch(url: string, options?: LaunchOptions) {
+    const mode = options?.mode || "redirect";
+
     if (mode === "redirect") {
       window.location.href = url;
     } else {
@@ -46,7 +60,7 @@ export class AuthsignalBrowser {
       Popup.show({url});
 
       return new Promise<boolean>((resolve) => {
-        const handleMfa = (event: MessageEvent) => {
+        const onMessage = (event: MessageEvent) => {
           if (event.origin === this.endpoint) {
             if (event.data === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
               Popup.close();
@@ -55,7 +69,7 @@ export class AuthsignalBrowser {
           }
         };
 
-        window.addEventListener("message", handleMfa, false);
+        window.addEventListener("message", onMessage, false);
       });
     }
   }
