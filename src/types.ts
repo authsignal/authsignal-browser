@@ -1,10 +1,15 @@
-export type Challenge = {
+export type ChallengeInput = {
   challengeUrl: string;
   mode?: "popup" | "redirect";
 };
 
-export type Mfa = {
+export type MfaInput = {
   url: string;
+  mode?: "popup" | "redirect";
+};
+
+export type LaunchOptions = {
+  mode?: "popup" | "redirect";
 };
 
 export type AuthsignalOptions = {
@@ -26,4 +31,13 @@ export type AuthsignalOptions = {
    * Name of id cookie. __eventn_id by default
    */
   cookieName?: string;
+
+  /**
+   * A URL pointing to the Authsignal MFA page.
+   */
+  endpoint?: string;
 };
+
+export enum AuthsignalWindowMessage {
+  AUTHSIGNAL_CLOSE_POPUP = "AUTHSIGNAL_CLOSE_POPUP",
+}
