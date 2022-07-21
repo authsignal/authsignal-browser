@@ -1,7 +1,7 @@
 import {v4 as uuidv4} from "uuid";
 
 import {setCookie, getCookieDomain, getCookie} from "./helpers";
-import {AuthsignalOptions, AuthsignalWindowMessage, ChallengeInput, LaunchOptions} from "./types";
+import {AuthsignalOptions, AuthsignalWindowMessage, MfaInput, ChallengeInput, LaunchOptions} from "./types";
 import {PopupHandler} from "./popup-handler";
 
 const DEFAULT_ENDPOINT = "https://mfa.authsignal.com/";
@@ -33,6 +33,18 @@ export class AuthsignalBrowser {
         secure: document.location.protocol !== "http:",
       });
     }
+  }
+
+  /**
+   * @deprecated Use launch() instead.
+   */
+  mfa(challenge: {mode?: "redirect"} & MfaInput): undefined;
+  mfa(challenge: {mode: "popup"} & MfaInput): Promise<boolean>;
+  mfa({mode, url}: MfaInput) {
+    if (mode === "popup") {
+      return this.launch(url, {mode});
+    }
+    return this.launch(url, {mode});
   }
 
   /**

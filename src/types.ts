@@ -3,6 +3,11 @@ export type ChallengeInput = {
   mode?: "popup" | "redirect";
 };
 
+export type MfaInput = {
+  url: string;
+  mode?: "popup" | "redirect";
+};
+
 export type LaunchOptions = {
   mode?: "popup" | "redirect";
 };
