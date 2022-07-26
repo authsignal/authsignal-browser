@@ -4,7 +4,7 @@ import {setCookie, getCookieDomain, getCookie} from "./helpers";
 import {AuthsignalOptions, AuthsignalWindowMessage, MfaInput, ChallengeInput, LaunchOptions} from "./types";
 import {PopupHandler} from "./popup-handler";
 
-const DEFAULT_ENDPOINT = "https://mfa.authsignal.com/";
+const DEFAULT_ENDPOINT = "https://mfa.authsignal.com";
 const DEFAULT_COOKIE_NAME = "__as_aid";
 
 export class Authsignal {
