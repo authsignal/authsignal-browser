@@ -16,10 +16,6 @@ export type LaunchOptions = {
    *  If no value is supplied, mode defaults to `redirect`.
    */
   mode?: "popup" | "redirect";
-  /**
-   * If launched in a popup, this event will be triggered when the popup is closed.
-   */
-  onClose?: () => void;
 };
 
 export type AuthsignalOptions = {

@@ -81,10 +81,6 @@ export class Authsignal {
         };
 
         Popup.on("hide", () => {
-          if (options?.onClose) {
-            options.onClose();
-          }
-
           resolve(true);
         });
 
