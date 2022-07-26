@@ -76,10 +76,17 @@ export class Authsignal {
           if (event.origin === this.endpoint) {
             if (event.data === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
               Popup.close();
-              resolve(true);
             }
           }
         };
+
+        Popup.on("hide", () => {
+          if (options?.onClose) {
+            options.onClose();
+          }
+
+          resolve(true);
+        });
 
         window.addEventListener("message", onMessage, false);
       });

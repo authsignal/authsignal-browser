@@ -9,6 +9,10 @@ type PopupShowInput = {
   url: string;
 };
 
+type EventType = "show" | "hide" | "destroy" | "create";
+
+type EventHandler = (node: Element, event?: Event) => void;
+
 class PopupHandler {
   private popup: A11yDialog | null = null;
 
@@ -85,12 +89,17 @@ class PopupHandler {
     container.appendChild(content);
 
     this.popup = new A11yDialog(container);
-    this.popup.on("hide", this.destroy);
+
+    // Make sure to remove any trace of the dialog on hide
+    this.popup.on("hide", () => {
+      this.destroy();
+    });
   }
 
   destroy() {
     const dialogEl = document.querySelector(`#${CONTAINER_ID}`);
     const styleEl = document.querySelector(`#${STYLE_ID}`);
+
     if (dialogEl && styleEl) {
       document.body.removeChild(dialogEl);
       document.head.removeChild(styleEl);
@@ -103,12 +112,14 @@ class PopupHandler {
     }
 
     const iframe = document.createElement("iframe");
+
     iframe.setAttribute("name", "authsignal");
     iframe.setAttribute("title", "Authsignal multi-factor authentication");
     iframe.setAttribute("src", url);
     iframe.setAttribute("frameborder", "0");
 
     const dialogContent = document.querySelector(`#${CONTENT_ID}`);
+
     if (dialogContent) {
       dialogContent.appendChild(iframe);
     }
@@ -122,6 +133,14 @@ class PopupHandler {
     }
 
     this.popup.hide();
+  }
+
+  on(event: EventType, handler: EventHandler) {
+    if (!this.popup) {
+      throw new Error("Popup is not initialized");
+    }
+
+    this.popup.on(event, handler);
   }
 }
 

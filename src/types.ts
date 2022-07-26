@@ -9,7 +9,17 @@ export type MfaInput = {
 };
 
 export type LaunchOptions = {
+  /**
+   *  How the Authsignal Prebuilt MFA page should launch.
+   *  `popup` will cause it to open in a overlay, whilst `redirect`
+   *  will trigger a full page redirect.
+   *  If no value is supplied, mode defaults to `redirect`.
+   */
   mode?: "popup" | "redirect";
+  /**
+   * If launched in a popup, this event will be triggered when the popup is closed.
+   */
+  onClose?: () => void;
 };
 
 export type AuthsignalOptions = {
