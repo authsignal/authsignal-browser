@@ -4,7 +4,6 @@ import {setCookie, getCookieDomain, getCookie} from "./helpers";
 import {AuthsignalOptions, AuthsignalWindowMessage, MfaInput, ChallengeInput, LaunchOptions} from "./types";
 import {PopupHandler} from "./popup-handler";
 
-const DEFAULT_ENDPOINT = "https://mfa.authsignal.com";
 const DEFAULT_COOKIE_NAME = "__as_aid";
 
 export class Authsignal {
@@ -12,13 +11,11 @@ export class Authsignal {
   cookieDomain = "";
   anonymousIdCookieName = "";
   publishableKey = "";
-  endpoint = "";
 
-  constructor({publishableKey, cookieDomain, cookieName, endpoint}: AuthsignalOptions) {
+  constructor({publishableKey, cookieDomain, cookieName}: AuthsignalOptions) {
     this.publishableKey = publishableKey;
     this.cookieDomain = cookieDomain || getCookieDomain();
     this.anonymousIdCookieName = cookieName || DEFAULT_COOKIE_NAME;
-    this.endpoint = endpoint || DEFAULT_ENDPOINT;
 
     const idCookie = getCookie(this.anonymousIdCookieName);
 
@@ -73,10 +70,8 @@ export class Authsignal {
 
       return new Promise<boolean>((resolve) => {
         const onMessage = (event: MessageEvent) => {
-          if (event.origin === this.endpoint) {
-            if (event.data === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
-              Popup.close();
-            }
+          if (event.data === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+            Popup.close();
           }
         };
 

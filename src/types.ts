@@ -37,11 +37,6 @@ export type AuthsignalOptions = {
    * Name of id cookie. __eventn_id by default
    */
   cookieName?: string;
-
-  /**
-   * A URL pointing to the Authsignal MFA page.
-   */
-  endpoint?: string;
 };
 
 export enum AuthsignalWindowMessage {
