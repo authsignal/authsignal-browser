@@ -64,9 +64,11 @@ export class Authsignal {
     if (mode === "redirect") {
       window.location.href = url;
     } else {
+      const popupUrl = `${url}&mode=popup`;
+
       const Popup = new PopupHandler();
 
-      Popup.show({url});
+      Popup.show({url: popupUrl});
 
       return new Promise<boolean>((resolve) => {
         const onMessage = (event: MessageEvent) => {
