@@ -73,7 +73,7 @@ class PopupHandler {
         position: relative;
         background-color: white;
         height: 600px;
-        width: 600px;
+        width: 576px;
         border-radius: 5px;
       }
 
