@@ -74,7 +74,7 @@ class PopupHandler {
         background-color: white;
         height: 600px;
         width: 576px;
-        border-radius: 5px;
+        border-radius: 8px;
       }
 
       #${CONTENT_ID} iframe {
