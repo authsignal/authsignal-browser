@@ -19,7 +19,9 @@ export class Authsignal {
 
     const idCookie = getCookie(this.anonymousIdCookieName);
 
-    if (!idCookie) {
+    if (idCookie) {
+      this.anonymousId = idCookie;
+    } else {
       this.anonymousId = uuidv4();
 
       setCookie({
