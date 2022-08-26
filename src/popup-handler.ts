@@ -117,6 +117,7 @@ class PopupHandler {
     iframe.setAttribute("title", "Authsignal multi-factor authentication");
     iframe.setAttribute("src", url);
     iframe.setAttribute("frameborder", "0");
+    iframe.setAttribute("allow", "publickey-credentials-get *");
 
     const dialogContent = document.querySelector(`#${CONTENT_ID}`);
 
