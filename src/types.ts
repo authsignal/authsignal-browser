@@ -1,13 +1,3 @@
-export type ChallengeInput = {
-  challengeUrl: string;
-  mode?: "popup" | "redirect";
-};
-
-export type MfaInput = {
-  url: string;
-  mode?: "popup" | "redirect";
-};
-
 export type LaunchOptions = {
   /**
    *  How the Authsignal Prebuilt MFA page should launch.
@@ -42,3 +32,12 @@ export type AuthsignalOptions = {
 export enum AuthsignalWindowMessage {
   AUTHSIGNAL_CLOSE_POPUP = "AUTHSIGNAL_CLOSE_POPUP",
 }
+
+export type AuthsignalWindowMessageData = {
+  event: AuthsignalWindowMessage;
+  token: string;
+};
+
+export type TokenPayload = {
+  token?: string;
+};

@@ -1,7 +1,13 @@
 import {v4 as uuidv4} from "uuid";
 
 import {setCookie, getCookieDomain, getCookie} from "./helpers";
-import {AuthsignalOptions, AuthsignalWindowMessage, MfaInput, ChallengeInput, LaunchOptions} from "./types";
+import {
+  AuthsignalOptions,
+  AuthsignalWindowMessage,
+  AuthsignalWindowMessageData,
+  LaunchOptions,
+  TokenPayload,
+} from "./types";
 import {PopupHandler} from "./popup-handler";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
@@ -11,6 +17,8 @@ export class Authsignal {
   cookieDomain = "";
   anonymousIdCookieName = "";
   publishableKey = "";
+
+  private _token: string | undefined = undefined;
 
   constructor({publishableKey, cookieDomain, cookieName}: AuthsignalOptions) {
     this.publishableKey = publishableKey;
@@ -34,32 +42,8 @@ export class Authsignal {
     }
   }
 
-  /**
-   * @deprecated Use launch() instead.
-   */
-  mfa(challenge: {mode?: "redirect"} & MfaInput): undefined;
-  mfa(challenge: {mode: "popup"} & MfaInput): Promise<boolean>;
-  mfa({mode, url}: MfaInput) {
-    if (mode === "popup") {
-      return this.launch(url, {mode});
-    }
-    return this.launch(url, {mode});
-  }
-
-  /**
-   * @deprecated Use launch() instead.
-   */
-  challenge(challenge: {mode?: "redirect"} & ChallengeInput): undefined;
-  challenge(challenge: {mode: "popup"} & ChallengeInput): Promise<boolean>;
-  challenge({mode, challengeUrl: url}: ChallengeInput) {
-    if (mode === "popup") {
-      return this.launch(url, {mode});
-    }
-    return this.launch(url, {mode});
-  }
-
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
-  launch(url: string, options?: {mode: "popup"} & LaunchOptions): Promise<boolean>;
+  launch(url: string, options?: {mode: "popup"} & LaunchOptions): Promise<TokenPayload>;
   launch(url: string, options?: LaunchOptions) {
     const mode = options?.mode || "redirect";
 
@@ -72,15 +56,25 @@ export class Authsignal {
 
       Popup.show({url: popupUrl});
 
-      return new Promise<boolean>((resolve) => {
+      return new Promise<TokenPayload>((resolve) => {
         const onMessage = (event: MessageEvent) => {
-          if (event.data === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+          let data: AuthsignalWindowMessageData | null = null;
+
+          try {
+            data = JSON.parse(event.data) as AuthsignalWindowMessageData;
+          } catch {
+            // Ignore if the event data is not valid JSON
+          }
+
+          if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+            this._token = data.token;
+
             Popup.close();
           }
         };
 
         Popup.on("hide", () => {
-          resolve(true);
+          resolve({token: this._token});
         });
 
         window.addEventListener("message", onMessage, false);
@@ -88,8 +82,3 @@ export class Authsignal {
     }
   }
 }
-
-/**
- * @deprecated Use Authsignal
- */
-export class AuthsignalBrowser extends Authsignal {}

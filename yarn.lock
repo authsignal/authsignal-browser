@@ -106,11 +106,6 @@
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
 
-"@types/basiclightbox@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@types/basiclightbox/-/basiclightbox-5.0.1.tgz#59f3a38015246c9c0e87dfc4aaddd49ac4b79ad8"
-  integrity sha512-77kVrFQyD76bD6uMlYiAAUjZkbO0YrOWT/fYYxHzFtR+CQ32jVhwClCkIbkQJ81uYFaBgJZhyzxKIrd8s85B3A==
-
 "@types/estree@*":
   version "0.0.51"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.51.tgz#cfd70924a25a3fd32b218e5e420e6897e1ac4f40"
