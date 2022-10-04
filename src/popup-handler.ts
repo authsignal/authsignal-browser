@@ -4,6 +4,8 @@ const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
 const OVERLAY_ID = "__authsignal-popup-overlay";
 const STYLE_ID = "__authsignal-popup-style";
+const DEFAULT_WIDTH = "576px";
+const DEFAULT_HEIGHT = "600px";
 
 type PopupShowInput = {
   url: string;
@@ -13,18 +15,38 @@ type EventType = "show" | "hide" | "destroy" | "create";
 
 type EventHandler = (node: Element, event?: Event) => void;
 
+type PopupHandlerOptions = {
+  width?: string;
+  height?: string;
+};
+
 class PopupHandler {
   private popup: A11yDialog | null = null;
 
-  constructor() {
+  constructor({width, height}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
       throw new Error("Multiple instances of Authsignal popup is not supported.");
     }
 
-    this.create();
+    this.create({width, height});
   }
 
-  create() {
+  create({width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT}: PopupHandlerOptions) {
+    const isWidthValidCSSValue = CSS.supports("width", width);
+    const isHeightValidCSSValue = CSS.supports("height", height);
+
+    let popupWidth = width;
+    let popupHeight = height;
+
+    if (!isWidthValidCSSValue) {
+      console.warn("Invalid CSS value for `popupOptions.width`. Using default value instead.");
+      popupWidth = DEFAULT_WIDTH;
+    }
+    if (!isHeightValidCSSValue) {
+      console.warn("Invalid CSS value for `popupOptions.height`. Using default value instead.");
+      popupHeight = DEFAULT_HEIGHT;
+    }
+
     // Create dialog container
     const container = document.createElement("div");
     container.setAttribute("id", CONTAINER_ID);
@@ -72,14 +94,15 @@ class PopupHandler {
         z-index: 2147483647;
         position: relative;
         background-color: white;
-        height: 600px;
-        width: 576px;
+        height: ${popupHeight};
+        width: ${popupWidth};
         border-radius: 8px;
       }
 
       #${CONTENT_ID} iframe {
         width: 100%;
         height: 100%;
+        border-radius: inherit;
       }
     `;
 
