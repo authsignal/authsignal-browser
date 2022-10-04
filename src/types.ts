@@ -1,4 +1,4 @@
-export type LaunchOptions = {
+type BaseLaunchOptions = {
   /**
    *  How the Authsignal Prebuilt MFA page should launch.
    *  `popup` will cause it to open in a overlay, whilst `redirect`
@@ -7,6 +7,22 @@ export type LaunchOptions = {
    */
   mode?: "popup" | "redirect";
 };
+
+type RedirectLaunchOptions = BaseLaunchOptions & {
+  mode: "redirect";
+};
+
+type PopupLaunchOptions = BaseLaunchOptions & {
+  mode: "popup";
+  popupOptions?: {
+    /** Any valid CSS value for the `width` property. */
+    width: string;
+    /** Any valid CSS value for the `height` property. */
+    height: string;
+  };
+};
+
+export type LaunchOptions = RedirectLaunchOptions | PopupLaunchOptions;
 
 export type AuthsignalOptions = {
   publishableKey: string;
@@ -24,7 +40,7 @@ export type AuthsignalOptions = {
   trackingHost?: string;
 
   /**
-   * Name of id cookie. __eventn_id by default
+   * Name of id cookie. `__as_aid` by default
    */
   cookieName?: string;
 };
