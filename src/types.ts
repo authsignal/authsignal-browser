@@ -34,7 +34,7 @@ export enum AuthsignalWindowMessage {
 }
 
 export type AuthsignalWindowMessageData = {
-  message: AuthsignalWindowMessage;
+  event: AuthsignalWindowMessage;
   token: string;
 };
 

@@ -60,7 +60,7 @@ export class Authsignal {
         const onMessage = (event: MessageEvent) => {
           const data = JSON.parse(event.data) as AuthsignalWindowMessageData;
 
-          if (data.message === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+          if (data.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
             this._token = data.token;
 
             Popup.close();
