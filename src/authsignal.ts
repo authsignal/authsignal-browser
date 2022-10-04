@@ -58,9 +58,15 @@ export class Authsignal {
 
       return new Promise<TokenPayload>((resolve) => {
         const onMessage = (event: MessageEvent) => {
-          const data = JSON.parse(event.data) as AuthsignalWindowMessageData;
+          let data: AuthsignalWindowMessageData | null = null;
 
-          if (data.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+          try {
+            data = JSON.parse(event.data) as AuthsignalWindowMessageData;
+          } catch {
+            // Ignore if the event data is not valid JSON
+          }
+
+          if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
             this._token = data.token;
 
             Popup.close();
