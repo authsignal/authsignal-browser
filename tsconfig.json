@@ -1,15 +1,11 @@
 {
-  "include": ["src/**/*", "./rollup.config.ts", "./package.json"],
   "compilerOptions": {
     "module": "esnext",
     "lib": ["dom", "esnext"],
-    "rootDir": ".",
-    "outDir": "./dist",
     "tsBuildInfoFile": ".cache/.tsbuildinfo",
     "incremental": true,
     "declaration": true,
-    "declarationDir": "./dist",
-    "sourceMap": true,
+    "declarationDir": "dist",
     "isolatedModules": true,
     "strict": true,
     "noEmit": true,
@@ -17,5 +13,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "preserveWatchOutput": true
-  }
+  },
+  "include": ["./src/**/*.ts"]
 }

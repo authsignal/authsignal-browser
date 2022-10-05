@@ -1,9 +1,9 @@
 {
   "name": "@authsignal/browser",
   "type": "module",
-  "version": "0.0.17",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "version": "0.0.18",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "keywords": [
     "authsignal",
@@ -18,7 +18,7 @@
     "typecheck": "tsc",
     "clean": "rm -rf ./dist",
     "lint": "eslint \"{cli,config,src,test}/**/*.ts\"",
-    "build": "rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript"
+    "build": "rollup -c rollup.config.js"
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.6",
@@ -26,7 +26,6 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^22.0.2",
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-typescript": "^8.5.0",
     "@types/uuid": "^8.3.4",
@@ -45,8 +44,8 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     }
   }
