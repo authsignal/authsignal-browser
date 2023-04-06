@@ -93,7 +93,7 @@ class PopupHandler {
         margin: auto;
         z-index: 2147483647;
         position: relative;
-        background-color: white;
+        background-color: transparent;
         height: ${popupHeight};
         width: ${popupWidth};
         border-radius: 8px;
@@ -140,7 +140,7 @@ class PopupHandler {
     iframe.setAttribute("title", "Authsignal multi-factor authentication");
     iframe.setAttribute("src", url);
     iframe.setAttribute("frameborder", "0");
-    iframe.setAttribute("allow", "publickey-credentials-get *");
+    iframe.setAttribute("allow", "publickey-credentials-get *; clipboard-write");
 
     const dialogContent = document.querySelector(`#${CONTENT_ID}`);
 
