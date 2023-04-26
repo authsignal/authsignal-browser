@@ -1,11 +1,14 @@
 import A11yDialog from "a11y-dialog";
+import "iframe-resizer/js/iframeResizer";
+import "iframe-resizer/js/iframeResizer.contentWindow";
 
 const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
 const OVERLAY_ID = "__authsignal-popup-overlay";
 const STYLE_ID = "__authsignal-popup-style";
-const DEFAULT_WIDTH = "576px";
-const DEFAULT_HEIGHT = "600px";
+const IFRAME_ID = "__authsignal-popup-iframe";
+
+const DEFAULT_WIDTH = "385px";
 
 type PopupShowInput = {
   url: string;
@@ -17,34 +20,28 @@ type EventHandler = (node: Element, event?: Event) => void;
 
 type PopupHandlerOptions = {
   width?: string;
-  height?: string;
 };
 
 class PopupHandler {
   private popup: A11yDialog | null = null;
+  private isHeightAutoResized = true;
 
-  constructor({width, height}: PopupHandlerOptions) {
+  constructor({width}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
       throw new Error("Multiple instances of Authsignal popup is not supported.");
     }
 
-    this.create({width, height});
+    this.create({width});
   }
 
-  create({width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT}: PopupHandlerOptions) {
+  create({width = DEFAULT_WIDTH}: PopupHandlerOptions) {
     const isWidthValidCSSValue = CSS.supports("width", width);
-    const isHeightValidCSSValue = CSS.supports("height", height);
 
     let popupWidth = width;
-    let popupHeight = height;
 
     if (!isWidthValidCSSValue) {
       console.warn("Invalid CSS value for `popupOptions.width`. Using default value instead.");
       popupWidth = DEFAULT_WIDTH;
-    }
-    if (!isHeightValidCSSValue) {
-      console.warn("Invalid CSS value for `popupOptions.height`. Using default value instead.");
-      popupHeight = DEFAULT_HEIGHT;
     }
 
     // Create dialog container
@@ -67,6 +64,18 @@ class PopupHandler {
     const style = document.createElement("style");
     style.setAttribute("id", STYLE_ID);
     style.textContent = `
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+      }
+      
+      @keyframes slide-up {
+        from {
+          transform: translateY(10%);
+        }
+      }
+
       #${CONTAINER_ID},
       #${OVERLAY_ID} {
         position: fixed;
@@ -86,7 +95,8 @@ class PopupHandler {
       }
 
       #${OVERLAY_ID} {
-        background-color: rgba(43, 46, 56, 0.9);
+        background-color: rgba(0, 0, 0, 0.18);
+        animation: fade-in 200ms both;
       }
 
       #${CONTENT_ID} {
@@ -94,15 +104,23 @@ class PopupHandler {
         z-index: 2147483647;
         position: relative;
         background-color: transparent;
-        height: ${popupHeight};
-        width: ${popupWidth};
         border-radius: 8px;
+        width: ${popupWidth};
+        animation: fade-in 400ms 200ms both, slide-up 400ms 200ms both;
       }
 
       #${CONTENT_ID} iframe {
-        width: 100%;
-        height: 100%;
+        width: 1px;
+        min-width: 100%;
         border-radius: inherit;
+        max-height: 65vh;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #${OVERLAY_ID},
+        #${CONTENT_ID} {
+          animation: none;
+        }
       }
     `;
 
@@ -136,6 +154,7 @@ class PopupHandler {
 
     const iframe = document.createElement("iframe");
 
+    iframe.setAttribute("id", IFRAME_ID);
     iframe.setAttribute("name", "authsignal");
     iframe.setAttribute("title", "Authsignal multi-factor authentication");
     iframe.setAttribute("src", url);
@@ -148,7 +167,17 @@ class PopupHandler {
       dialogContent.appendChild(iframe);
     }
 
-    this.popup.show();
+    // @ts-expect-error can't get typescript import to behave nicely, this works though
+    iFrameResize(
+      {
+        checkOrigin: false,
+        scrolling: true,
+        onInit: () => {
+          this.popup?.show();
+        },
+      },
+      iframe
+    );
   }
 
   close() {

@@ -50,7 +50,7 @@ export class Authsignal {
     } else {
       const {popupOptions} = options;
 
-      const Popup = new PopupHandler({width: popupOptions?.width, height: popupOptions?.height});
+      const Popup = new PopupHandler({width: popupOptions?.width});
 
       const popupUrl = `${url}&mode=popup`;
 
