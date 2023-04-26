@@ -17,8 +17,6 @@ type PopupLaunchOptions = BaseLaunchOptions & {
   popupOptions?: {
     /** Any valid CSS value for the `width` property. */
     width: string;
-    /** Any valid CSS value for the `height` property. */
-    height: string;
   };
 };
 
