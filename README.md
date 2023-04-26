@@ -5,7 +5,7 @@
 
 ## Usage
 
-The Authsignal Browser API can be used to launch the Authsignal Prebuilt MFA page to let users set up MFA and complete challenges.
+The Authsignal Browser API can be used to launch Authsignal's Challenge UI to let users set up MFA and complete challenges.
 
 See the [documentation](https://docs.authsignal.com/api/browser-api) for details on how to use this SDK with the Authsignal Server APIs.
 
