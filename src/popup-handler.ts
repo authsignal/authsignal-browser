@@ -8,7 +8,7 @@ const OVERLAY_ID = "__authsignal-popup-overlay";
 const STYLE_ID = "__authsignal-popup-style";
 const IFRAME_ID = "__authsignal-popup-iframe";
 
-const DEFAULT_WIDTH = "380px";
+const DEFAULT_WIDTH = "385px";
 
 type PopupShowInput = {
   url: string;
@@ -24,6 +24,7 @@ type PopupHandlerOptions = {
 
 class PopupHandler {
   private popup: A11yDialog | null = null;
+  private isHeightAutoResized = true;
 
   constructor({width}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
@@ -109,10 +110,10 @@ class PopupHandler {
       }
 
       #${CONTENT_ID} iframe {
-        width: 100%;
-        height: 100%;
+        width: 1px;
+        min-width: 100%;
         border-radius: inherit;
-        max-height: 80vh;
+        max-height: 65vh;
       }
 
       @media (prefers-reduced-motion: reduce) {

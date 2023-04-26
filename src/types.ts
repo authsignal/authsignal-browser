@@ -16,7 +16,11 @@ type PopupLaunchOptions = BaseLaunchOptions & {
   mode: "popup";
   popupOptions?: {
     /** Any valid CSS value for the `width` property. */
-    width: string;
+    width?: string;
+    /**
+     * @deprecated The popup will automatically resize to fit the content.
+     */
+    height?: string;
   };
 };
 
