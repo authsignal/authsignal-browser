@@ -64,18 +64,6 @@ class PopupHandler {
     const style = document.createElement("style");
     style.setAttribute("id", STYLE_ID);
     style.textContent = `
-      @keyframes fade-in {
-        from {
-          opacity: 0;
-        }
-      }
-      
-      @keyframes slide-up {
-        from {
-          transform: translateY(10%);
-        }
-      }
-
       #${CONTAINER_ID},
       #${OVERLAY_ID} {
         position: fixed;
@@ -96,7 +84,6 @@ class PopupHandler {
 
       #${OVERLAY_ID} {
         background-color: rgba(0, 0, 0, 0.18);
-        animation: fade-in 200ms both;
       }
 
       #${CONTENT_ID} {
@@ -106,7 +93,6 @@ class PopupHandler {
         background-color: transparent;
         border-radius: 8px;
         width: ${popupWidth};
-        animation: fade-in 400ms 200ms both, slide-up 400ms 200ms both;
       }
 
       #${CONTENT_ID} iframe {
@@ -114,13 +100,6 @@ class PopupHandler {
         min-width: 100%;
         border-radius: inherit;
         max-height: 65vh;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        #${OVERLAY_ID},
-        #${CONTENT_ID} {
-          animation: none;
-        }
       }
     `;
 
