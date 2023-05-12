@@ -22,13 +22,16 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.6",
+    "@simplewebauthn/browser": "^7.2.0",
     "a11y-dialog": "^7.5.2",
     "iframe-resizer": "^4.3.6",
+    "ky": "^0.33.3",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-typescript": "^8.5.0",
+    "@simplewebauthn/typescript-types": "^7.0.0",
     "@types/iframe-resizer": "^3.5.9",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
