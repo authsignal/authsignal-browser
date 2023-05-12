@@ -32,7 +32,7 @@ export class Passkey {
     }
   }
 
-  async signIn({userName, token}: {userName: string; token?: string}) {
+  async signIn({userName, token}: {userName?: string; token?: string}) {
     const optsResponse = await this.api.authenticationOptions({userName, token});
 
     try {
