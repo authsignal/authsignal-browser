@@ -27,7 +27,7 @@ export type AuthenticationOptsResponse = {
 export type AddAuthenticatorRequest = {
   token: string;
   challengeId: string;
-  authenticationCredential: RegistrationResponseJSON;
+  registrationCredential: RegistrationResponseJSON;
 };
 
 export type AddAuthenticatorResponse = {

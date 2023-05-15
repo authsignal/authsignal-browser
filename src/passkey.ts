@@ -22,7 +22,7 @@ export class Passkey {
 
       const addAuthenticatorResponse = await this.api.addAuthenticator({
         challengeId: optsResponse.challengeId,
-        authenticationCredential: attReponse,
+        registrationCredential: attReponse,
         token,
       });
 
@@ -32,11 +32,19 @@ export class Passkey {
     }
   }
 
-  async signIn({userName, token}: {userName?: string; token?: string}) {
+  async signIn({
+    userName,
+    token,
+    useBrowserAutofill,
+  }: {
+    userName?: string;
+    token?: string;
+    useBrowserAutofill?: boolean;
+  }) {
     const optsResponse = await this.api.authenticationOptions({userName, token});
 
     try {
-      const asseReponse = await startAuthentication(optsResponse.options);
+      const asseReponse = await startAuthentication(optsResponse.options, useBrowserAutofill);
 
       const verifyResponse = await this.api.verify({
         challengeId: optsResponse.challengeId,
