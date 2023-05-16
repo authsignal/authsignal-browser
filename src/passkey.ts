@@ -7,6 +7,11 @@ type PasskeyOptions = {
   tenantId: string;
 };
 
+type SignUpParams = {
+  userName?: string;
+  token: string;
+};
+
 export class Passkey {
   private api: PasskeyApiClient;
 
@@ -14,7 +19,7 @@ export class Passkey {
     this.api = new PasskeyApiClient({baseUrl, tenantId});
   }
 
-  async signUp({userName, token}: {userName: string; token: string}) {
+  async signUp({userName, token}: SignUpParams) {
     const optsResponse = await this.api.registrationOptions({userName, token});
 
     try {
@@ -32,24 +37,18 @@ export class Passkey {
     }
   }
 
-  async signIn({
-    userName,
-    token,
-    useBrowserAutofill,
-  }: {
-    userName?: string;
-    token?: string;
-    useBrowserAutofill?: boolean;
-  }) {
-    const optsResponse = await this.api.authenticationOptions({userName, token});
+  async signIn(params?: {token: string}): Promise<string | undefined>;
+  async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
+  async signIn(params?: {token?: string; autofill?: boolean} | undefined) {
+    const optsResponse = await this.api.authenticationOptions({token: params?.token});
 
     try {
-      const asseReponse = await startAuthentication(optsResponse.options, useBrowserAutofill);
+      const asseReponse = await startAuthentication(optsResponse.options, params?.autofill);
 
       const verifyResponse = await this.api.verify({
         challengeId: optsResponse.challengeId,
         authenticationCredential: asseReponse,
-        token,
+        token: params?.token,
       });
 
       return verifyResponse?.accessToken;

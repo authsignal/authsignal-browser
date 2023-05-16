@@ -5,7 +5,7 @@ import {
 } from "@simplewebauthn/typescript-types";
 
 export type RegistrationOptsRequest = {
-  userName: string;
+  userName?: string;
   token: string;
 };
 
@@ -15,7 +15,6 @@ export type RegistrationOptsResponse = {
 };
 
 export type AuthenticationOptsRequest = {
-  userName?: string;
   token?: string;
 };
 

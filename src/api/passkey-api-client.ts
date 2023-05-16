@@ -39,11 +39,10 @@ export class PasskeyApiClient {
     return response.json();
   }
 
-  async authenticationOptions({token, userName}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
+  async authenticationOptions({token}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
     const authorizationHeader = token ? `Bearer ${token}` : `Basic ${Buffer.from(this.tenantId).toString("base64")}`;
 
     const response = await this.api.post("user-authenticators/passkey/authentication-options", {
-      json: {userName},
       headers: {
         Authorization: authorizationHeader,
       },
