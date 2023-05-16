@@ -20,14 +20,14 @@ export class Passkey {
   }
 
   async signUp({userName, token}: SignUpParams) {
-    const optsResponse = await this.api.registrationOptions({userName, token});
+    const optionsResponse = await this.api.registrationOptions({userName, token});
 
     try {
-      const attReponse = await startRegistration(optsResponse.options);
+      const registrationResponse = await startRegistration(optionsResponse.options);
 
       const addAuthenticatorResponse = await this.api.addAuthenticator({
-        challengeId: optsResponse.challengeId,
-        registrationCredential: attReponse,
+        challengeId: optionsResponse.challengeId,
+        registrationCredential: registrationResponse,
         token,
       });
 
@@ -40,14 +40,18 @@ export class Passkey {
   async signIn(params?: {token: string}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
   async signIn(params?: {token?: string; autofill?: boolean} | undefined) {
-    const optsResponse = await this.api.authenticationOptions({token: params?.token});
+    if (params?.token && params.autofill) {
+      throw new Error("Autofill is not supported when providing a token");
+    }
+
+    const optionsResponse = await this.api.authenticationOptions({token: params?.token});
 
     try {
-      const asseReponse = await startAuthentication(optsResponse.options, params?.autofill);
+      const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
 
       const verifyResponse = await this.api.verify({
-        challengeId: optsResponse.challengeId,
-        authenticationCredential: asseReponse,
+        challengeId: optionsResponse.challengeId,
+        authenticationCredential: authenticationResponse,
         token: params?.token,
       });
 
