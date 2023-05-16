@@ -43,6 +43,7 @@ export class PasskeyApiClient {
     const authorizationHeader = token ? `Bearer ${token}` : `Basic ${Buffer.from(this.tenantId).toString("base64")}`;
 
     const response = await this.api.post("user-authenticators/passkey/authentication-options", {
+      json: {},
       headers: {
         Authorization: authorizationHeader,
       },
