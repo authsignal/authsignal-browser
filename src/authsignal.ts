@@ -9,21 +9,30 @@ import {
   TokenPayload,
 } from "./types";
 import {PopupHandler} from "./popup-handler";
+import {Passkey} from "./passkey";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
+
+const DEFAULT_BASE_URL = "https://challenge.authsignal.com/v1";
 
 export class Authsignal {
   anonymousId = "";
   cookieDomain = "";
   anonymousIdCookieName = "";
-  publishableKey = "";
+  passkey: Passkey;
 
   private _token: string | undefined = undefined;
 
-  constructor({publishableKey, cookieDomain, cookieName}: AuthsignalOptions) {
-    this.publishableKey = publishableKey;
+  constructor({
+    cookieDomain,
+    cookieName = DEFAULT_COOKIE_NAME,
+    baseUrl = DEFAULT_BASE_URL,
+    tenantId,
+  }: AuthsignalOptions) {
     this.cookieDomain = cookieDomain || getCookieDomain();
-    this.anonymousIdCookieName = cookieName || DEFAULT_COOKIE_NAME;
+    this.anonymousIdCookieName = cookieName;
+
+    this.passkey = new Passkey({tenantId, baseUrl});
 
     const idCookie = getCookie(this.anonymousIdCookieName);
 

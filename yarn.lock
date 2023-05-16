@@ -98,6 +98,18 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
+"@simplewebauthn/browser@^7.2.0":
+  version "7.2.0"
+  resolved "https://registry.npmjs.org/@simplewebauthn/browser/-/browser-7.2.0.tgz#cb959290469d14b2f33e15156439e20caf539fc7"
+  integrity sha512-HHIvRPpqKy0UV/BsGAmx4rQRZuZTUFYLLH65FwpSOslqHruiHx3Ql/bq7A75bjWuJ296a+4BIAq3+SPaII01TQ==
+  dependencies:
+    "@simplewebauthn/typescript-types" "*"
+
+"@simplewebauthn/typescript-types@*", "@simplewebauthn/typescript-types@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.npmjs.org/@simplewebauthn/typescript-types/-/typescript-types-7.0.0.tgz#887178424220524e71c10ae4548fbb353ed58ae6"
+  integrity sha512-bV+xACCFTsrLR/23ozHO06ZllHZaxC8LlI5YCo79GvU2BrN+rePDU2yXwZIYndNWcMQwRdndRdAhpafOh9AC/g==
+
 "@types/estree@0.0.39":
   version "0.0.39"
   resolved "https://registry.npmjs.org/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
@@ -745,6 +757,11 @@ json-stable-stringify-without-jsonify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz#9db7b59496ad3f3cfef30a75142d2d930ad72651"
   integrity sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==
+
+ky@^0.33.3:
+  version "0.33.3"
+  resolved "https://registry.npmjs.org/ky/-/ky-0.33.3.tgz#bf1ad322a3f2c3428c13cfa4b3af95e6c4a2f543"
+  integrity sha512-CasD9OCEQSFIam2U8efFK81Yeg8vNMTBUqtMOHlrcWQHqUX3HeCl9Dr31u4toV7emlH8Mymk5+9p0lL6mKb/Xw==
 
 levn@^0.4.1:
   version "0.4.1"

@@ -27,7 +27,6 @@ type PopupLaunchOptions = BaseLaunchOptions & {
 export type LaunchOptions = RedirectLaunchOptions | PopupLaunchOptions;
 
 export type AuthsignalOptions = {
-  publishableKey: string;
   /**
    * Cookie domain that will be used to identify
    * users. If not set, location.hostname will be used
@@ -45,6 +44,8 @@ export type AuthsignalOptions = {
    * Name of id cookie. `__as_aid` by default
    */
   cookieName?: string;
+  baseUrl?: string;
+  tenantId: string;
 };
 
 export enum AuthsignalWindowMessage {
