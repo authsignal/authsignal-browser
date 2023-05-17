@@ -659,11 +659,6 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
-iframe-resizer@^4.3.6:
-  version "4.3.6"
-  resolved "https://registry.npmjs.org/iframe-resizer/-/iframe-resizer-4.3.6.tgz#61d92c1adefe5d416bff4fbf80c7f1f74be70ec0"
-  integrity sha512-wz0WodRIF6eP0oGQa5NIP1yrITAZ59ZJvVaVJqJRjaeCtfm461vy2C3us6CKx0e7pooqpIGLpVMSTzrfAjX9Sg==
-
 ignore@^5.2.0:
   version "5.2.0"
   resolved "https://registry.npmjs.org/ignore/-/ignore-5.2.0.tgz#6d3bac8fa7fe0d45d9f9be7bac2fc279577e345a"
