@@ -1,6 +1,4 @@
 import A11yDialog from "a11y-dialog";
-import "iframe-resizer/js/iframeResizer";
-import "iframe-resizer/js/iframeResizer.contentWindow";
 
 const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
@@ -146,17 +144,7 @@ class PopupHandler {
       dialogContent.appendChild(iframe);
     }
 
-    // @ts-expect-error can't get typescript import to behave nicely, this works though
-    iFrameResize(
-      {
-        checkOrigin: false,
-        scrolling: true,
-        onInit: () => {
-          this.popup?.show();
-        },
-      },
-      iframe
-    );
+    this.popup?.show();
   }
 
   close() {
