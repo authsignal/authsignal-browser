@@ -1,8 +1,9 @@
 {
   "name": "@authsignal/browser",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "type": "module",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "keywords": [
     "authsignal",
@@ -48,8 +49,7 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   }

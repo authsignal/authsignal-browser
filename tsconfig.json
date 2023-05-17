@@ -12,7 +12,8 @@
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "preserveWatchOutput": true
+    "preserveWatchOutput": true,
+    "rootDir": "src"
   },
   "include": ["./src/**/*.ts"]
 }

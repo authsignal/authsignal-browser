@@ -5,11 +5,7 @@ export default {
   input: "src/index.ts",
   output: [
     {
-      dir: "dist",
-      format: "cjs",
-    },
-    {
-      file: "dist/index.mjs",
+      file: "dist/index.js",
       format: "esm",
     },
   ],
