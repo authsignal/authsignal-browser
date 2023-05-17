@@ -22,7 +22,6 @@ type PopupHandlerOptions = {
 
 class PopupHandler {
   private popup: A11yDialog | null = null;
-  private isHeightAutoResized = true;
 
   constructor({width}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
@@ -122,6 +121,8 @@ class PopupHandler {
       document.body.removeChild(dialogEl);
       document.head.removeChild(styleEl);
     }
+
+    window.removeEventListener("message", resizeIframe);
   }
 
   show({url}: PopupShowInput) {
@@ -144,6 +145,8 @@ class PopupHandler {
       dialogContent.appendChild(iframe);
     }
 
+    window.addEventListener("message", resizeIframe);
+
     this.popup?.show();
   }
 
@@ -161,6 +164,14 @@ class PopupHandler {
     }
 
     this.popup.on(event, handler);
+  }
+}
+
+function resizeIframe(event: MessageEvent) {
+  const iframeEl = document.querySelector<HTMLIFrameElement>(`#${IFRAME_ID}`);
+
+  if (iframeEl && event.data.height) {
+    iframeEl.style.height = event.data.height + "px";
   }
 }
 
