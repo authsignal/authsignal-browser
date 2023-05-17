@@ -1,6 +1,4 @@
 import A11yDialog from "a11y-dialog";
-import "iframe-resizer/js/iframeResizer";
-import "iframe-resizer/js/iframeResizer.contentWindow";
 
 const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
@@ -24,7 +22,6 @@ type PopupHandlerOptions = {
 
 class PopupHandler {
   private popup: A11yDialog | null = null;
-  private isHeightAutoResized = true;
 
   constructor({width}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
@@ -124,6 +121,8 @@ class PopupHandler {
       document.body.removeChild(dialogEl);
       document.head.removeChild(styleEl);
     }
+
+    window.removeEventListener("message", resizeIframe);
   }
 
   show({url}: PopupShowInput) {
@@ -146,17 +145,9 @@ class PopupHandler {
       dialogContent.appendChild(iframe);
     }
 
-    // @ts-expect-error can't get typescript import to behave nicely, this works though
-    iFrameResize(
-      {
-        checkOrigin: false,
-        scrolling: true,
-        onInit: () => {
-          this.popup?.show();
-        },
-      },
-      iframe
-    );
+    window.addEventListener("message", resizeIframe);
+
+    this.popup?.show();
   }
 
   close() {
@@ -173,6 +164,14 @@ class PopupHandler {
     }
 
     this.popup.on(event, handler);
+  }
+}
+
+function resizeIframe(event: MessageEvent) {
+  const iframeEl = document.querySelector<HTMLIFrameElement>(`#${IFRAME_ID}`);
+
+  if (iframeEl && event.data.height) {
+    iframeEl.style.height = event.data.height + "px";
   }
 }
 
