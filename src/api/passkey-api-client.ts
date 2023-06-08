@@ -31,22 +31,16 @@ export class PasskeyApiClient {
   async registrationOptions({token, userName}: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
     const response = await this.api.post("user-authenticators/passkey/registration-options", {
       json: {userName},
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: this.buildHeaders(token),
     });
 
     return response.json();
   }
 
   async authenticationOptions({token}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
-    const authorizationHeader = token ? `Bearer ${token}` : `Basic ${Buffer.from(this.tenantId).toString("base64")}`;
-
     const response = await this.api.post("user-authenticators/passkey/authentication-options", {
       json: {},
-      headers: {
-        Authorization: authorizationHeader,
-      },
+      headers: this.buildHeaders(token),
     });
 
     return response.json();
@@ -55,24 +49,26 @@ export class PasskeyApiClient {
   async addAuthenticator({token, ...rest}: AddAuthenticatorRequest): Promise<AddAuthenticatorResponse> {
     const response = await this.api.post("user-authenticators/passkey", {
       json: rest,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: this.buildHeaders(token),
     });
 
     return response.json();
   }
 
   async verify({token, ...rest}: VerifyRequest): Promise<VerifyResponse> {
-    const authorizationHeader = token ? `Bearer ${token}` : `Basic ${Buffer.from(this.tenantId).toString("base64")}`;
-
     const response = await this.api.post("verify/passkey", {
       json: rest,
-      headers: {
-        Authorization: authorizationHeader,
-      },
+      headers: this.buildHeaders(token),
     });
 
     return response.json();
+  }
+
+  private buildHeaders(token?: string) {
+    const authorizationHeader = token ? `Bearer ${token}` : `Basic ${window.btoa(encodeURIComponent(this.tenantId))}`;
+
+    return {
+      Authorization: authorizationHeader,
+    };
   }
 }

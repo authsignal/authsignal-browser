@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^14.1.0",
+    "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-typescript": "^8.5.0",
     "@simplewebauthn/typescript-types": "^7.0.0",
     "@types/iframe-resizer": "^3.5.9",
