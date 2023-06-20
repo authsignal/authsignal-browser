@@ -13,7 +13,7 @@ type SignUpParams = {
 };
 
 export class Passkey {
-  private api: PasskeyApiClient;
+  public api: PasskeyApiClient;
 
   constructor({baseUrl, tenantId}: PasskeyOptions) {
     this.api = new PasskeyApiClient({baseUrl, tenantId});
