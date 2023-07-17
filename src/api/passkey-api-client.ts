@@ -30,7 +30,7 @@ export class PasskeyApiClient {
 
   async registrationOptions({token, userName}: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
     const response = await this.api.post("user-authenticators/passkey/registration-options", {
-      json: {userName},
+      json: {username: userName},
       headers: this.buildHeaders(token),
     });
 
