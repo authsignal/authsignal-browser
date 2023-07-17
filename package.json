@@ -12,7 +12,10 @@
     "authentication",
     "passkeys",
     "webauthn",
-    "passwordless"
+    "passwordless",
+    "fido2",
+    "biometrics",
+    "typescript"
   ],
   "license": "MIT",
   "repository": "git://github.com/authsignal/authsignal-browser.git",
