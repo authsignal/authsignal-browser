@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -9,7 +9,13 @@
     "authsignal",
     "mfa",
     "2fa",
-    "authentication"
+    "authentication",
+    "passkeys",
+    "webauthn",
+    "passwordless",
+    "fido2",
+    "biometrics",
+    "typescript"
   ],
   "license": "MIT",
   "repository": "git://github.com/authsignal/authsignal-browser.git",
