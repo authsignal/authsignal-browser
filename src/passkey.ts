@@ -22,19 +22,15 @@ export class Passkey {
   async signUp({userName, token}: SignUpParams) {
     const optionsResponse = await this.api.registrationOptions({userName, token});
 
-    try {
-      const registrationResponse = await startRegistration(optionsResponse.options);
+    const registrationResponse = await startRegistration(optionsResponse.options);
 
-      const addAuthenticatorResponse = await this.api.addAuthenticator({
-        challengeId: optionsResponse.challengeId,
-        registrationCredential: registrationResponse,
-        token,
-      });
+    const addAuthenticatorResponse = await this.api.addAuthenticator({
+      challengeId: optionsResponse.challengeId,
+      registrationCredential: registrationResponse,
+      token,
+    });
 
-      return addAuthenticatorResponse?.accessToken;
-    } catch (error) {
-      console.error(error);
-    }
+    return addAuthenticatorResponse?.accessToken;
   }
 
   async signIn(params?: {token: string}): Promise<string | undefined>;
@@ -46,18 +42,14 @@ export class Passkey {
 
     const optionsResponse = await this.api.authenticationOptions({token: params?.token});
 
-    try {
-      const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
+    const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
 
-      const verifyResponse = await this.api.verify({
-        challengeId: optionsResponse.challengeId,
-        authenticationCredential: authenticationResponse,
-        token: params?.token,
-      });
+    const verifyResponse = await this.api.verify({
+      challengeId: optionsResponse.challengeId,
+      authenticationCredential: authenticationResponse,
+      token: params?.token,
+    });
 
-      return verifyResponse?.accessToken;
-    } catch (error) {
-      console.error(error);
-    }
+    return verifyResponse?.accessToken;
   }
 }
