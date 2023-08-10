@@ -32,6 +32,10 @@ export class Authsignal {
     this.cookieDomain = cookieDomain || getCookieDomain();
     this.anonymousIdCookieName = cookieName;
 
+    if (!tenantId) {
+      throw new Error("tenantId is required");
+    }
+
     this.passkey = new Passkey({tenantId, baseUrl});
 
     const idCookie = getCookie(this.anonymousIdCookieName);
