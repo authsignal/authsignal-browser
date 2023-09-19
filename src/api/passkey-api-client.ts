@@ -29,7 +29,7 @@ export class PasskeyApiClient {
   }
 
   async registrationOptions({token, userName}: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
-    const response = await this.api.post("user-authenticators/passkey/registration-options", {
+    const response = await this.api.post("client/user-authenticators/passkey/registration-options", {
       json: {username: userName},
       headers: this.buildHeaders(token),
     });
@@ -38,7 +38,7 @@ export class PasskeyApiClient {
   }
 
   async authenticationOptions({token}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
-    const response = await this.api.post("user-authenticators/passkey/authentication-options", {
+    const response = await this.api.post("client/user-authenticators/passkey/authentication-options", {
       json: {},
       headers: this.buildHeaders(token),
     });
@@ -47,7 +47,7 @@ export class PasskeyApiClient {
   }
 
   async addAuthenticator({token, ...rest}: AddAuthenticatorRequest): Promise<AddAuthenticatorResponse> {
-    const response = await this.api.post("user-authenticators/passkey", {
+    const response = await this.api.post("client/user-authenticators/passkey", {
       json: rest,
       headers: this.buildHeaders(token),
     });
@@ -56,7 +56,7 @@ export class PasskeyApiClient {
   }
 
   async verify({token, ...rest}: VerifyRequest): Promise<VerifyResponse> {
-    const response = await this.api.post("verify/passkey", {
+    const response = await this.api.post("client/verify/passkey", {
       json: rest,
       headers: this.buildHeaders(token),
     });

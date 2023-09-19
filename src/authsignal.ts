@@ -13,7 +13,7 @@ import {Passkey} from "./passkey";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 
-const DEFAULT_BASE_URL = "https://challenge.authsignal.com/v1";
+const DEFAULT_BASE_URL = "https://api.authsignal.com/v1";
 
 export class Authsignal {
   anonymousId = "";
