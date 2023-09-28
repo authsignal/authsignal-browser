@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.6",
-    "@simplewebauthn/browser": "^7.2.0",
+    "@simplewebauthn/browser": "^8.2.0",
     "a11y-dialog": "^7.5.2",
     "ky": "^0.33.3",
     "uuid": "^9.0.0"
@@ -37,7 +37,7 @@
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-typescript": "^8.5.0",
-    "@simplewebauthn/typescript-types": "^7.0.0",
+    "@simplewebauthn/typescript-types": "^8.0.0",
     "@types/iframe-resizer": "^3.5.9",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
