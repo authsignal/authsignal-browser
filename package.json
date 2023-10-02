@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.6",
-    "@simplewebauthn/browser": "^8.2.0",
+    "@simplewebauthn/browser": "^8.2.1",
     "a11y-dialog": "^7.5.2",
     "ky": "^0.33.3",
     "uuid": "^9.0.0"
