@@ -57,10 +57,14 @@ export class Authsignal {
 
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
   launch(url: string, options?: {mode: "popup"} & LaunchOptions): Promise<TokenPayload>;
+  launch(url: string, options?: {mode: "windowPopup"} & LaunchOptions): Promise<TokenPayload>;
   launch(url: string, options?: LaunchOptions) {
     if (!options?.mode || options.mode === "redirect") {
       window.location.href = url;
-    } else {
+    } else if(!options?.mode || options.mode === "windowPopup"){
+
+    }
+    else {
       const {popupOptions} = options;
 
       const Popup = new PopupHandler({width: popupOptions?.width});
