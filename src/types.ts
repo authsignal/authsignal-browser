@@ -5,7 +5,7 @@ type BaseLaunchOptions = {
    *  will trigger a full page redirect.
    *  If no value is supplied, mode defaults to `redirect`.
    */
-  mode?: "popup" | "redirect" | "windowPopup";
+  mode?: "popup" | "redirect" | "window";
 };
 
 type RedirectLaunchOptions = BaseLaunchOptions & {
@@ -24,8 +24,8 @@ type PopupLaunchOptions = BaseLaunchOptions & {
   };
 };
 
-type WindowPopupLaunchOptions = BaseLaunchOptions & {
-  mode: "windowPopup";
+type WindowLaunchOptions = BaseLaunchOptions & {
+  mode: "window";
   popupOptions?: {
     /** Any valid CSS value for the `width` property. */
     width?: string;
@@ -36,8 +36,7 @@ type WindowPopupLaunchOptions = BaseLaunchOptions & {
   };
 };
 
-
-export type LaunchOptions = RedirectLaunchOptions | PopupLaunchOptions | WindowPopupLaunchOptions;
+export type LaunchOptions = RedirectLaunchOptions | PopupLaunchOptions | WindowLaunchOptions;
 
 export type AuthsignalOptions = {
   /**
