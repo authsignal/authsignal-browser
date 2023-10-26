@@ -20,7 +20,7 @@ type PopupHandlerOptions = {
   width?: string;
 };
 
-class PopupHandler {
+export class PopupHandler {
   private popup: A11yDialog | null = null;
 
   constructor({width}: PopupHandlerOptions) {
@@ -174,5 +174,3 @@ function resizeIframe(event: MessageEvent) {
     iframeEl.style.height = event.data.height + "px";
   }
 }
-
-export {PopupHandler};

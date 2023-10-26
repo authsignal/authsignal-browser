@@ -8,11 +8,11 @@ type BaseLaunchOptions = {
   mode?: "popup" | "redirect" | "window";
 };
 
-type RedirectLaunchOptions = BaseLaunchOptions & {
+export type RedirectLaunchOptions = BaseLaunchOptions & {
   mode: "redirect";
 };
 
-type PopupLaunchOptions = BaseLaunchOptions & {
+export type PopupLaunchOptions = BaseLaunchOptions & {
   mode: "popup";
   popupOptions?: {
     /** Any valid CSS value for the `width` property. */
@@ -24,15 +24,11 @@ type PopupLaunchOptions = BaseLaunchOptions & {
   };
 };
 
-type WindowLaunchOptions = BaseLaunchOptions & {
+export type WindowLaunchOptions = BaseLaunchOptions & {
   mode: "window";
-  popupOptions?: {
-    /** Any valid CSS value for the `width` property. */
-    width?: string;
-    /**
-     * @deprecated The popup will automatically resize to fit the content.
-     */
-    height?: string;
+  windowOptions?: {
+    width?: number;
+    height?: number;
   };
 };
 
