@@ -10,9 +10,8 @@ import {
   TokenPayload,
   WindowLaunchOptions,
 } from "./types";
-import {PopupHandler} from "./handlers/popup-handler";
+import {PopupHandler, WindowHandler} from "./handlers";
 import {Passkey} from "./passkey";
-import {WindowHandler} from "./handlers/window-handler";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 
