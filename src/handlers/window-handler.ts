@@ -1,4 +1,4 @@
-type PopupShowInput = {
+type WindowShowInput = {
   url: string;
   width?: number;
   height?: number;
@@ -10,7 +10,7 @@ const DEFAULT_HEIGHT = 500;
 export class WindowHandler {
   private windowRef: Window | null = null;
 
-  show({url, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT}: PopupShowInput) {
+  show({url, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT}: WindowShowInput) {
     const windowRef = openWindow({url, width, height, win: window});
 
     if (!windowRef) {
@@ -31,14 +31,14 @@ export class WindowHandler {
   }
 }
 
-type WindowPopupCenterOptions = {
+type OpenWindowInput = {
   url: string;
   width: number;
   height: number;
   win: Window;
 };
 
-function openWindow({url, width, height, win}: WindowPopupCenterOptions): Window | null {
+function openWindow({url, width, height, win}: OpenWindowInput): Window | null {
   if (!win.top) {
     return null;
   }

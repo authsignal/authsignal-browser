@@ -80,11 +80,11 @@ export class Authsignal {
   private launchWithPopup(url: string, options: PopupLaunchOptions) {
     const {popupOptions} = options;
 
-    const Popup = new PopupHandler({width: popupOptions?.width});
+    const popupHandler = new PopupHandler({width: popupOptions?.width});
 
     const popupUrl = `${url}&mode=popup`;
 
-    Popup.show({url: popupUrl});
+    popupHandler.show({url: popupUrl});
 
     return new Promise<TokenPayload>((resolve) => {
       const onMessage = (event: MessageEvent) => {
@@ -99,11 +99,11 @@ export class Authsignal {
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
           this._token = data.token;
 
-          Popup.close();
+          popupHandler.close();
         }
       };
 
-      Popup.on("hide", () => {
+      popupHandler.on("hide", () => {
         resolve({token: this._token});
       });
 
@@ -114,11 +114,11 @@ export class Authsignal {
   private launchWithWindow(url: string, options: WindowLaunchOptions) {
     const {windowOptions} = options;
 
-    const Window = new WindowHandler();
+    const windowHandler = new WindowHandler();
 
-    const popupUrl = `${url}&mode=popup`;
+    const windowUrl = `${url}&mode=popup`;
 
-    Window.show({url: popupUrl, width: windowOptions?.width, height: windowOptions?.height});
+    windowHandler.show({url: windowUrl, width: windowOptions?.width, height: windowOptions?.height});
 
     return new Promise<TokenPayload>((resolve) => {
       const onMessage = (event: MessageEvent) => {
@@ -133,10 +133,11 @@ export class Authsignal {
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
           this._token = data.token;
 
-          Window.close();
+          windowHandler.close();
           resolve({token: this._token});
         }
       };
+
       window.addEventListener("message", onMessage, false);
     });
   }
