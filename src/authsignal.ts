@@ -6,9 +6,11 @@ import {
   AuthsignalWindowMessage,
   AuthsignalWindowMessageData,
   LaunchOptions,
+  PopupLaunchOptions,
   TokenPayload,
+  WindowLaunchOptions,
 } from "./types";
-import {PopupHandler} from "./popup-handler";
+import {PopupHandler, WindowHandler} from "./handlers";
 import {Passkey} from "./passkey";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
@@ -57,41 +59,85 @@ export class Authsignal {
 
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
   launch(url: string, options?: {mode: "popup"} & LaunchOptions): Promise<TokenPayload>;
+  launch(url: string, options?: {mode: "window"} & LaunchOptions): Promise<TokenPayload>;
   launch(url: string, options?: LaunchOptions) {
-    if (!options?.mode || options.mode === "redirect") {
-      window.location.href = url;
-    } else {
-      const {popupOptions} = options;
-
-      const Popup = new PopupHandler({width: popupOptions?.width});
-
-      const popupUrl = `${url}&mode=popup`;
-
-      Popup.show({url: popupUrl});
-
-      return new Promise<TokenPayload>((resolve) => {
-        const onMessage = (event: MessageEvent) => {
-          let data: AuthsignalWindowMessageData | null = null;
-
-          try {
-            data = JSON.parse(event.data) as AuthsignalWindowMessageData;
-          } catch {
-            // Ignore if the event data is not valid JSON
-          }
-
-          if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
-            this._token = data.token;
-
-            Popup.close();
-          }
-        };
-
-        Popup.on("hide", () => {
-          resolve({token: this._token});
-        });
-
-        window.addEventListener("message", onMessage, false);
-      });
+    switch (options?.mode) {
+      case "window":
+        return this.launchWithWindow(url, options);
+      case "popup":
+        return this.launchWithPopup(url, options);
+      case "redirect":
+      default:
+        this.launchWithRedirect(url);
     }
+  }
+
+  private launchWithRedirect(url: string) {
+    window.location.href = url;
+  }
+
+  private launchWithPopup(url: string, options: PopupLaunchOptions) {
+    const {popupOptions} = options;
+
+    const popupHandler = new PopupHandler({width: popupOptions?.width});
+
+    const popupUrl = `${url}&mode=popup`;
+
+    popupHandler.show({url: popupUrl});
+
+    return new Promise<TokenPayload>((resolve) => {
+      const onMessage = (event: MessageEvent) => {
+        let data: AuthsignalWindowMessageData | null = null;
+
+        try {
+          data = JSON.parse(event.data) as AuthsignalWindowMessageData;
+        } catch {
+          // Ignore if the event data is not valid JSON
+        }
+
+        if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+          this._token = data.token;
+
+          popupHandler.close();
+        }
+      };
+
+      popupHandler.on("hide", () => {
+        resolve({token: this._token});
+      });
+
+      window.addEventListener("message", onMessage, false);
+    });
+  }
+
+  private launchWithWindow(url: string, options: WindowLaunchOptions) {
+    const {windowOptions} = options;
+
+    const windowHandler = new WindowHandler();
+
+    const windowUrl = `${url}&mode=popup`;
+
+    windowHandler.show({url: windowUrl, width: windowOptions?.width, height: windowOptions?.height});
+
+    return new Promise<TokenPayload>((resolve) => {
+      const onMessage = (event: MessageEvent) => {
+        let data: AuthsignalWindowMessageData | null = null;
+
+        try {
+          data = JSON.parse(event.data) as AuthsignalWindowMessageData;
+        } catch {
+          // Ignore if the event data is not valid JSON
+        }
+
+        if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+          this._token = data.token;
+
+          windowHandler.close();
+          resolve({token: this._token});
+        }
+      };
+
+      window.addEventListener("message", onMessage, false);
+    });
   }
 }
