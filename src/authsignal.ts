@@ -14,11 +14,15 @@ import {PopupHandler, WindowHandler} from "./handlers";
 import {Passkey} from "./passkey";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
+const DEFAULT_PROFILING_COOKIE_NAME = "__as_pid";
 
 const DEFAULT_BASE_URL = "https://api.authsignal.com/v1";
 
+const TMX_ORG_ID = "4a08uqve";
+
 export class Authsignal {
   anonymousId = "";
+  profilingId = "";
   cookieDomain = "";
   anonymousIdCookieName = "";
   passkey: Passkey;
@@ -139,5 +143,49 @@ export class Authsignal {
 
       window.addEventListener("message", onMessage, false);
     });
+  }
+
+  initAdvancedProfiling(baseUrl?: string) {
+    const profilingId = uuidv4();
+    this.profilingId = profilingId;
+    setCookie({
+      name: DEFAULT_PROFILING_COOKIE_NAME,
+      value: profilingId,
+      expire: Infinity,
+      domain: this.cookieDomain,
+      secure: document.location.protocol !== "http:",
+    });
+
+    const tmxProfilingScruiptUrl = baseUrl
+      ? `${baseUrl}/fp/tags.js?org_id=${TMX_ORG_ID}&session_id=${profilingId}`
+      : `https://h.online-metrix.net/fp/tags.js?org_id=${TMX_ORG_ID}&session_id=${profilingId}`;
+    const script = document.createElement("script");
+    script.src = tmxProfilingScruiptUrl;
+    script.async = false;
+    script.id = "as_adv_profile";
+    document.head.appendChild(script);
+
+    const container = document.createElement("noscript");
+    container.setAttribute("id", "as_adv_profile_script");
+    container.setAttribute("aria-hidden", "true");
+
+    document.body.prepend(container);
+
+    // Instantiate Iframe
+    const iframe = document.createElement("iframe");
+    const profilingPixelUrl = baseUrl
+      ? `${baseUrl}/fp/tags?org_id=${TMX_ORG_ID}&session_id=${profilingId}`
+      : `https://h.online-metrix.net/fp/tags?org_id=${TMX_ORG_ID}&session_id=${profilingId}`;
+
+    iframe.setAttribute("id", "as_adv_profile_script");
+    iframe.setAttribute("src", profilingPixelUrl);
+    iframe.setAttribute("style", "width: 100px; height: 100px; border: 0; position: absolute; top: -5000px;");
+
+    const pixelContainer = document.querySelector("as_adv_profile_script");
+
+    if (pixelContainer) {
+      pixelContainer.appendChild(iframe);
+      document.body.prepend(pixelContainer);
+    }
   }
 }
