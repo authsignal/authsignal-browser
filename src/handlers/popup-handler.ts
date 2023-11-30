@@ -8,6 +8,8 @@ const IFRAME_ID = "__authsignal-popup-iframe";
 
 const DEFAULT_WIDTH = "385px";
 
+const INITIAL_HEIGHT = "384px";
+
 type PopupShowInput = {
   url: string;
 };
@@ -97,6 +99,7 @@ export class PopupHandler {
         min-width: 100%;
         border-radius: inherit;
         max-height: 95vh;
+        height: ${INITIAL_HEIGHT};
       }
     `;
 
