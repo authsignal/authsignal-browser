@@ -33,6 +33,7 @@ export class Passkey {
     return addAuthenticatorResponse?.accessToken;
   }
 
+  async signIn(): Promise<string | undefined>;
   async signIn(params?: {token: string}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
   async signIn(params?: {token?: string; autofill?: boolean} | undefined) {
