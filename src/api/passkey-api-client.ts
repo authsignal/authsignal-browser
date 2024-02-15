@@ -1,5 +1,3 @@
-import ky from "ky";
-import {KyInstance} from "ky/distribution/types/ky";
 import {
   AddAuthenticatorRequest,
   AddAuthenticatorResponse,
@@ -18,56 +16,58 @@ type PasskeyApiClientOptions = {
 
 export class PasskeyApiClient {
   tenantId: string;
-  api: KyInstance;
+  baseUrl: string;
 
   constructor({baseUrl, tenantId}: PasskeyApiClientOptions) {
     this.tenantId = tenantId;
-
-    this.api = ky.create({
-      prefixUrl: baseUrl,
-    });
+    this.baseUrl = baseUrl;
   }
 
   async registrationOptions({token, userName}: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
-    const response = await this.api.post("client/user-authenticators/passkey/registration-options", {
-      json: {username: userName},
+    const request = fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
+      method: "POST",
       headers: this.buildHeaders(token),
+      body: JSON.stringify({username: userName}),
     });
 
-    return response.json();
+    return (await request).json();
   }
 
   async authenticationOptions({token}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
-    const response = await this.api.post("client/user-authenticators/passkey/authentication-options", {
-      json: {},
+    const request = fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
+      method: "POST",
       headers: this.buildHeaders(token),
+      body: JSON.stringify({}),
     });
 
-    return response.json();
+    return (await request).json();
   }
 
   async addAuthenticator({token, ...rest}: AddAuthenticatorRequest): Promise<AddAuthenticatorResponse> {
-    const response = await this.api.post("client/user-authenticators/passkey", {
-      json: rest,
+    const request = fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
+      method: "POST",
       headers: this.buildHeaders(token),
+      body: JSON.stringify(rest),
     });
 
-    return response.json();
+    return (await request).json();
   }
 
   async verify({token, ...rest}: VerifyRequest): Promise<VerifyResponse> {
-    const response = await this.api.post("client/verify/passkey", {
-      json: rest,
+    const request = fetch(`${this.baseUrl}/client/verify/passkey`, {
+      method: "POST",
       headers: this.buildHeaders(token),
+      body: JSON.stringify(rest),
     });
 
-    return response.json();
+    return (await request).json();
   }
 
   private buildHeaders(token?: string) {
     const authorizationHeader = token ? `Bearer ${token}` : `Basic ${window.btoa(encodeURIComponent(this.tenantId))}`;
 
     return {
+      "Content-Type": "application/json",
       Authorization: authorizationHeader,
     };
   }

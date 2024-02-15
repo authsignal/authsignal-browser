@@ -152,12 +152,17 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@simplewebauthn/browser@^8.2.1":
-  version "8.2.1"
-  resolved "https://registry.npmjs.org/@simplewebauthn/browser/-/browser-8.2.1.tgz#feb9f9553dd10e5e4349d58753e5c3bf8bf52957"
-  integrity sha512-s8A2ADEpULrPcKBbewzWECgyUe4sOu06OwBN4UzSO5PmBj4TG9nXaz+Ihy7ZT8eK6lF+lPy/tKebfjc/7dY2HA==
+"@simplewebauthn/browser@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.npmjs.org/@simplewebauthn/browser/-/browser-9.0.1.tgz#46a12c2bcefcb199f7fcb6a7e883531cd6efde17"
+  integrity sha512-wD2WpbkaEP4170s13/HUxPcAV5y4ZXaKo1TfNklS5zDefPinIgXOpgz1kpEvobAsaLPa2KeH7AKKX/od1mrBJw==
   dependencies:
-    "@simplewebauthn/typescript-types" "^8.0.0"
+    "@simplewebauthn/types" "^9.0.1"
+
+"@simplewebauthn/types@^9.0.1":
+  version "9.0.1"
+  resolved "https://registry.npmjs.org/@simplewebauthn/types/-/types-9.0.1.tgz#3a68d50e63d8821cf2067de3324c68d5e8120d0c"
+  integrity sha512-tGSRP1QvsAvsJmnOlRQyw/mvK9gnPtjEc5fg2+m8n+QUa+D7rvrKkOYyfpy42GTs90X3RDOnqJgfHt+qO67/+w==
 
 "@simplewebauthn/typescript-types@^8.0.0":
   version "8.0.0"
@@ -821,11 +826,6 @@ json-stable-stringify-without-jsonify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.npmjs.org/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz#9db7b59496ad3f3cfef30a75142d2d930ad72651"
   integrity sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==
-
-ky@^0.33.3:
-  version "0.33.3"
-  resolved "https://registry.npmjs.org/ky/-/ky-0.33.3.tgz#bf1ad322a3f2c3428c13cfa4b3af95e6c4a2f543"
-  integrity sha512-CasD9OCEQSFIam2U8efFK81Yeg8vNMTBUqtMOHlrcWQHqUX3HeCl9Dr31u4toV7emlH8Mymk5+9p0lL6mKb/Xw==
 
 levn@^0.4.1:
   version "0.4.1"

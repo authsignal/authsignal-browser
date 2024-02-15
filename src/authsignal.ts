@@ -76,9 +76,11 @@ export class Authsignal {
     }
   }
 
-  initAdvancedProfiling(baseUrl?: string): undefined {
+  initAdvancedProfiling(baseUrl?: string) {
     const profilingId = uuidv4();
+
     this.profilingId = profilingId;
+
     setCookie({
       name: DEFAULT_PROFILING_COOKIE_NAME,
       value: profilingId,

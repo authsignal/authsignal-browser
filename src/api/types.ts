@@ -2,7 +2,7 @@ import {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationResponseJSON,
-} from "@simplewebauthn/typescript-types";
+} from "@simplewebauthn/types";
 
 export type RegistrationOptsRequest = {
   userName?: string;
