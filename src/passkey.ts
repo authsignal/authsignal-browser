@@ -1,7 +1,7 @@
 import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
-import {AuthenticationResponseJSON, RegistrationResponseJSON} from "@simplewebauthn/types";
+import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -11,6 +11,7 @@ type PasskeyOptions = {
 type SignUpParams = {
   userName?: string;
   token: string;
+  authenticatorAttachment?: AuthenticatorAttachment | null;
 };
 
 export class Passkey {
@@ -21,8 +22,8 @@ export class Passkey {
     this.api = new PasskeyApiClient({baseUrl, tenantId});
   }
 
-  async signUp({userName, token}: SignUpParams) {
-    const optionsResponse = await this.api.registrationOptions({userName, token});
+  async signUp({userName, token, authenticatorAttachment = "platform"}: SignUpParams) {
+    const optionsResponse = await this.api.registrationOptions({userName, token, authenticatorAttachment});
 
     const registrationResponse = await startRegistration(optionsResponse.options);
 
