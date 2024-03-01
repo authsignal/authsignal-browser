@@ -1,4 +1,4 @@
-import A11yDialog from "a11y-dialog";
+import A11yDialog, {A11yDialogEvent} from "a11y-dialog";
 
 const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
@@ -14,26 +14,23 @@ type PopupShowInput = {
   url: string;
 };
 
-type EventType = "show" | "hide" | "destroy" | "create";
-
-type EventHandler = (node: Element, event?: Event) => void;
-
 type PopupHandlerOptions = {
   width?: string;
+  isClosable?: boolean;
 };
 
 export class PopupHandler {
   private popup: A11yDialog | null = null;
 
-  constructor({width}: PopupHandlerOptions) {
+  constructor({width, isClosable}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
       throw new Error("Multiple instances of Authsignal popup is not supported.");
     }
 
-    this.create({width});
+    this.create({width, isClosable});
   }
 
-  create({width = DEFAULT_WIDTH}: PopupHandlerOptions) {
+  create({width = DEFAULT_WIDTH, isClosable = true}: PopupHandlerOptions) {
     const isWidthValidCSSValue = CSS.supports("width", width);
 
     let popupWidth = width;
@@ -48,10 +45,17 @@ export class PopupHandler {
     container.setAttribute("id", CONTAINER_ID);
     container.setAttribute("aria-hidden", "true");
 
+    if (!isClosable) {
+      container.setAttribute("role", "alertdialog");
+    }
+
     // Create dialog overlay
     const overlay = document.createElement("div");
     overlay.setAttribute("id", OVERLAY_ID);
-    overlay.setAttribute("data-a11y-dialog-hide", "true");
+
+    if (isClosable) {
+      overlay.setAttribute("data-a11y-dialog-hide", "true");
+    }
 
     // Create dialog content
     const content = document.createElement("div");
@@ -161,12 +165,12 @@ export class PopupHandler {
     this.popup.hide();
   }
 
-  on(event: EventType, handler: EventHandler) {
+  on(event: A11yDialogEvent, listener: EventListener) {
     if (!this.popup) {
       throw new Error("Popup is not initialized");
     }
 
-    this.popup.on(event, handler);
+    this.popup.on(event, listener);
   }
 }
 
