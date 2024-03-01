@@ -3,6 +3,7 @@ import {
   AddAuthenticatorResponse,
   AuthenticationOptsRequest,
   AuthenticationOptsResponse,
+  PasskeyAuthenticatorResponse,
   RegistrationOptsRequest,
   RegistrationOptsResponse,
   VerifyRequest,
@@ -24,43 +25,56 @@ export class PasskeyApiClient {
   }
 
   async registrationOptions({token, userName}: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
-    const request = fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
+    const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
       method: "POST",
       headers: this.buildHeaders(token),
       body: JSON.stringify({username: userName}),
     });
 
-    return (await request).json();
+    return (await response).json();
   }
 
   async authenticationOptions({token}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
-    const request = fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
+    const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
       headers: this.buildHeaders(token),
       body: JSON.stringify({}),
     });
 
-    return (await request).json();
+    return (await response).json();
   }
 
   async addAuthenticator({token, ...rest}: AddAuthenticatorRequest): Promise<AddAuthenticatorResponse> {
-    const request = fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
+    const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
       method: "POST",
       headers: this.buildHeaders(token),
       body: JSON.stringify(rest),
     });
 
-    return (await request).json();
+    return (await response).json();
   }
 
   async verify({token, ...rest}: VerifyRequest): Promise<VerifyResponse> {
-    const request = fetch(`${this.baseUrl}/client/verify/passkey`, {
+    const response = fetch(`${this.baseUrl}/client/verify/passkey`, {
       method: "POST",
       headers: this.buildHeaders(token),
       body: JSON.stringify(rest),
     });
 
-    return (await request).json();
+    return (await response).json();
+  }
+
+  async getPasskeyAuthenticator(credentialId: string): Promise<PasskeyAuthenticatorResponse> {
+    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey?credentialId=${credentialId}`, {
+      method: "GET",
+      headers: this.buildHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+
+    return response.json();
   }
 
   private buildHeaders(token?: string) {
