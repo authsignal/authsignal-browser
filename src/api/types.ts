@@ -45,3 +45,8 @@ export type VerifyResponse = {
   isVerified: boolean;
   accessToken?: string;
 };
+
+export type PasskeyAuthenticatorResponse = {
+  credentialId: string;
+  verifiedAt: string;
+};

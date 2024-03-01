@@ -1,6 +1,7 @@
 import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
+import {AuthenticationResponseJSON, RegistrationResponseJSON} from "@simplewebauthn/types";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -14,6 +15,7 @@ type SignUpParams = {
 
 export class Passkey {
   public api: PasskeyApiClient;
+  private passkeyLocalStorageKey = "as_passkey_credential_id";
 
   constructor({baseUrl, tenantId}: PasskeyOptions) {
     this.api = new PasskeyApiClient({baseUrl, tenantId});
@@ -29,6 +31,10 @@ export class Passkey {
       registrationCredential: registrationResponse,
       token,
     });
+
+    if (addAuthenticatorResponse?.isVerified) {
+      this.storeCredentialAgainstDevice(registrationResponse);
+    }
 
     return addAuthenticatorResponse?.accessToken;
   }
@@ -51,6 +57,37 @@ export class Passkey {
       token: params?.token,
     });
 
+    if (verifyResponse?.isVerified) {
+      this.storeCredentialAgainstDevice(authenticationResponse);
+    }
+
     return verifyResponse?.accessToken;
+  }
+
+  async isAvailableOnDevice() {
+    const credentialId = localStorage.getItem(this.passkeyLocalStorageKey);
+
+    if (!credentialId) {
+      return false;
+    }
+
+    try {
+      await this.api.getPasskeyAuthenticator(credentialId);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  private storeCredentialAgainstDevice({
+    id,
+    authenticatorAttachment,
+  }: AuthenticationResponseJSON | RegistrationResponseJSON) {
+    if (authenticatorAttachment === "cross-platform") {
+      return;
+    }
+
+    localStorage.setItem(this.passkeyLocalStorageKey, id);
   }
 }
