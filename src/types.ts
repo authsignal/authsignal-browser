@@ -21,6 +21,10 @@ export type PopupLaunchOptions = BaseLaunchOptions & {
      * @deprecated The popup will automatically resize to fit the content.
      */
     height?: string;
+    /**
+     * Whether the popup is closable with the escape key and by clicking the backdrop.
+     */
+    isClosable?: boolean;
   };
 };
 
