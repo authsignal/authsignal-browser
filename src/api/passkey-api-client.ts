@@ -24,11 +24,19 @@ export class PasskeyApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async registrationOptions({token, userName}: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
+  async registrationOptions({
+    token,
+    userName,
+    authenticatorAttachment,
+  }: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
+    const body = Boolean(authenticatorAttachment)
+      ? {username: userName, authenticatorAttachment}
+      : {username: userName};
+
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
       method: "POST",
       headers: this.buildHeaders(token),
-      body: JSON.stringify({username: userName}),
+      body: JSON.stringify(body),
     });
 
     return (await response).json();

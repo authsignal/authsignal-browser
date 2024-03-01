@@ -1,5 +1,6 @@
 import {
   AuthenticationResponseJSON,
+  AuthenticatorAttachment,
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/types";
@@ -7,6 +8,7 @@ import {
 export type RegistrationOptsRequest = {
   userName?: string;
   token: string;
+  authenticatorAttachment?: AuthenticatorAttachment | null;
 };
 
 export type RegistrationOptsResponse = {
