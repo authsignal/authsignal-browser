@@ -75,7 +75,7 @@ export class Passkey {
       await this.api.getPasskeyAuthenticator(credentialId);
 
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
