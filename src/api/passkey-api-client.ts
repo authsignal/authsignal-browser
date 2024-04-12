@@ -3,6 +3,7 @@ import {
   AddAuthenticatorResponse,
   AuthenticationOptsRequest,
   AuthenticationOptsResponse,
+  ChallengeResponse,
   PasskeyAuthenticatorResponse,
   RegistrationOptsRequest,
   RegistrationOptsResponse,
@@ -26,12 +27,12 @@ export class PasskeyApiClient {
 
   async registrationOptions({
     token,
-    userName,
+    username,
     authenticatorAttachment,
-  }: RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
-    const body = Boolean(authenticatorAttachment)
-      ? {username: userName, authenticatorAttachment}
-      : {username: userName};
+  }: {token: string} & RegistrationOptsRequest): Promise<RegistrationOptsResponse> {
+    const body: RegistrationOptsRequest = Boolean(authenticatorAttachment)
+      ? {username, authenticatorAttachment}
+      : {username};
 
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
       method: "POST",
@@ -42,31 +43,52 @@ export class PasskeyApiClient {
     return (await response).json();
   }
 
-  async authenticationOptions({token}: AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
+  async authenticationOptions({
+    token,
+    challengeId,
+  }: {token?: string} & AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
+    const body: AuthenticationOptsRequest = {challengeId};
+
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
       headers: this.buildHeaders(token),
-      body: JSON.stringify({}),
+      body: JSON.stringify(body),
     });
 
     return (await response).json();
   }
 
-  async addAuthenticator({token, ...rest}: AddAuthenticatorRequest): Promise<AddAuthenticatorResponse> {
+  async addAuthenticator({
+    token,
+    challengeId,
+    registrationCredential,
+  }: {token: string} & AddAuthenticatorRequest): Promise<AddAuthenticatorResponse> {
+    const body: AddAuthenticatorRequest = {
+      challengeId,
+      registrationCredential,
+    };
+
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
       method: "POST",
       headers: this.buildHeaders(token),
-      body: JSON.stringify(rest),
+      body: JSON.stringify(body),
     });
 
     return (await response).json();
   }
 
-  async verify({token, ...rest}: VerifyRequest): Promise<VerifyResponse> {
+  async verify({
+    token,
+    challengeId,
+    authenticationCredential,
+    deviceId,
+  }: {token?: string} & VerifyRequest): Promise<VerifyResponse> {
+    const body: VerifyRequest = {challengeId, authenticationCredential, deviceId};
+
     const response = fetch(`${this.baseUrl}/client/verify/passkey`, {
       method: "POST",
       headers: this.buildHeaders(token),
-      body: JSON.stringify(rest),
+      body: JSON.stringify(body),
     });
 
     return (await response).json();
@@ -83,6 +105,16 @@ export class PasskeyApiClient {
     }
 
     return response.json();
+  }
+
+  async challenge(action: string): Promise<ChallengeResponse> {
+    const response = fetch(`${this.baseUrl}/client/challenge`, {
+      method: "POST",
+      headers: this.buildHeaders(),
+      body: JSON.stringify({action}),
+    });
+
+    return (await response).json();
   }
 
   private buildHeaders(token?: string) {

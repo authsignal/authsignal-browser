@@ -6,8 +6,7 @@ import {
 } from "@simplewebauthn/types";
 
 export type RegistrationOptsRequest = {
-  userName?: string;
-  token: string;
+  username?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
 };
 
@@ -17,7 +16,7 @@ export type RegistrationOptsResponse = {
 };
 
 export type AuthenticationOptsRequest = {
-  token?: string;
+  challengeId?: string;
 };
 
 export type AuthenticationOptsResponse = {
@@ -26,7 +25,6 @@ export type AuthenticationOptsResponse = {
 };
 
 export type AddAuthenticatorRequest = {
-  token: string;
   challengeId: string;
   registrationCredential: RegistrationResponseJSON;
 };
@@ -38,9 +36,9 @@ export type AddAuthenticatorResponse = {
 };
 
 export type VerifyRequest = {
-  token?: string;
   challengeId: string;
   authenticationCredential: AuthenticationResponseJSON;
+  deviceId?: string;
 };
 
 export type VerifyResponse = {
@@ -51,4 +49,8 @@ export type VerifyResponse = {
 export type PasskeyAuthenticatorResponse = {
   credentialId: string;
   verifiedAt: string;
+};
+
+export type ChallengeResponse = {
+  challengeId: string;
 };

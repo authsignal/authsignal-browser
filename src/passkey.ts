@@ -6,6 +6,7 @@ import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttac
 type PasskeyOptions = {
   baseUrl: string;
   tenantId: string;
+  anonymousId: string;
 };
 
 type SignUpParams = {
@@ -17,13 +18,15 @@ type SignUpParams = {
 export class Passkey {
   public api: PasskeyApiClient;
   private passkeyLocalStorageKey = "as_passkey_credential_id";
+  private anonymousId: string;
 
-  constructor({baseUrl, tenantId}: PasskeyOptions) {
+  constructor({baseUrl, tenantId, anonymousId}: PasskeyOptions) {
     this.api = new PasskeyApiClient({baseUrl, tenantId});
+    this.anonymousId = anonymousId;
   }
 
   async signUp({userName, token, authenticatorAttachment = "platform"}: SignUpParams) {
-    const optionsResponse = await this.api.registrationOptions({userName, token, authenticatorAttachment});
+    const optionsResponse = await this.api.registrationOptions({username: userName, token, authenticatorAttachment});
 
     const registrationResponse = await startRegistration(optionsResponse.options);
 
@@ -43,12 +46,21 @@ export class Passkey {
   async signIn(): Promise<string | undefined>;
   async signIn(params?: {token: string}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
-  async signIn(params?: {token?: string; autofill?: boolean} | undefined) {
+  async signIn(params?: {token?: string; autofill?: boolean; action?: string} | undefined) {
     if (params?.token && params.autofill) {
-      throw new Error("Autofill is not supported when providing a token");
+      throw new Error("autofill is not supported when providing a token");
     }
 
-    const optionsResponse = await this.api.authenticationOptions({token: params?.token});
+    if (params?.action && params.token) {
+      throw new Error("action is not supported when providing a token");
+    }
+
+    const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
+
+    const optionsResponse = await this.api.authenticationOptions({
+      token: params?.token,
+      challengeId: challengeResponse?.challengeId,
+    });
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
 
@@ -56,6 +68,7 @@ export class Passkey {
       challengeId: optionsResponse.challengeId,
       authenticationCredential: authenticationResponse,
       token: params?.token,
+      deviceId: this.anonymousId,
     });
 
     if (verifyResponse?.isVerified) {
