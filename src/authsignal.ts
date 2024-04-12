@@ -42,8 +42,6 @@ export class Authsignal {
       throw new Error("tenantId is required");
     }
 
-    this.passkey = new Passkey({tenantId, baseUrl});
-
     const idCookie = getCookie(this.anonymousIdCookieName);
 
     if (idCookie) {
@@ -59,6 +57,8 @@ export class Authsignal {
         secure: document.location.protocol !== "http:",
       });
     }
+
+    this.passkey = new Passkey({tenantId, baseUrl, anonymousId: this.anonymousId});
   }
 
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
