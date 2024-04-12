@@ -44,6 +44,7 @@ export class Passkey {
   }
 
   async signIn(): Promise<string | undefined>;
+  async signIn(params?: {action: string; autofill?: boolean}): Promise<string | undefined>;
   async signIn(params?: {token: string}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
   async signIn(params?: {token?: string; autofill?: boolean; action?: string} | undefined) {
