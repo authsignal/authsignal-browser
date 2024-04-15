@@ -47,7 +47,8 @@ export class Passkey {
   async signIn(params?: {action: string; autofill?: boolean}): Promise<string | undefined>;
   async signIn(params?: {token: string}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
-  async signIn(params?: {token?: string; autofill?: boolean; action?: string} | undefined) {
+  async signIn(params?: {autofill: boolean; challengeId?: string}): Promise<string | undefined>;
+  async signIn(params?: {token?: string; autofill?: boolean; action?: string; challengeId?: string} | undefined) {
     if (params?.token && params.autofill) {
       throw new Error("autofill is not supported when providing a token");
     }
@@ -56,11 +57,19 @@ export class Passkey {
       throw new Error("action is not supported when providing a token");
     }
 
+    if (params?.action && params?.challengeId) {
+      throw new Error("action is not supported when providing a challengeId");
+    }
+
+    if (params?.challengeId && params.token) {
+      throw new Error("challengeId is not supported when providing a token");
+    }
+
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     const optionsResponse = await this.api.authenticationOptions({
       token: params?.token,
-      challengeId: challengeResponse?.challengeId,
+      challengeId: challengeResponse?.challengeId ?? params?.challengeId,
     });
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
