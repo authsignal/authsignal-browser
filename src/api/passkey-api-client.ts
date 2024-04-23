@@ -49,13 +49,17 @@ export class PasskeyApiClient {
   }: {token?: string} & AuthenticationOptsRequest): Promise<AuthenticationOptsResponse> {
     const body: AuthenticationOptsRequest = {challengeId};
 
-    const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
+    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
       headers: this.buildHeaders(token),
       body: JSON.stringify(body),
     });
 
-    return (await response).json();
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+
+    return response.json();
   }
 
   async addAuthenticator({
