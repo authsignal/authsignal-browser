@@ -12,6 +12,7 @@ import {
 } from "./types";
 import {Passkey} from "./passkey";
 import {PopupHandler, WindowHandler} from "./handlers";
+import {Kiosk} from "./kiosk";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 const DEFAULT_PROFILING_COOKIE_NAME = "__as_pid";
@@ -26,6 +27,7 @@ export class Authsignal {
   cookieDomain = "";
   anonymousIdCookieName = "";
   passkey: Passkey;
+  kiosk: Kiosk;
 
   private _token: string | undefined = undefined;
 
@@ -59,6 +61,7 @@ export class Authsignal {
     }
 
     this.passkey = new Passkey({tenantId, baseUrl, anonymousId: this.anonymousId});
+    this.kiosk = new Kiosk({baseUrl, tenantId});
   }
 
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;

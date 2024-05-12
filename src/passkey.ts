@@ -48,6 +48,7 @@ export class Passkey {
   async signIn(params?: {token: string}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
   async signIn(params?: {autofill: boolean; challengeId?: string}): Promise<string | undefined>;
+  async signIn(params?: {challengeId: string}): Promise<string | undefined>;
   async signIn(params?: {token?: string; autofill?: boolean; action?: string; challengeId?: string} | undefined) {
     if (params?.token && params.autofill) {
       throw new Error("autofill is not supported when providing a token");
