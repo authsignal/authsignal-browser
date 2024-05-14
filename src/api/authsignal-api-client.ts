@@ -46,4 +46,4 @@ export class AuthsignalApiClient {
   }
 }
 
-export type AnonymousVerifyResponse = VerifyResponse & {isConsumed: boolean; data?: any};
+export type AnonymousVerifyResponse = VerifyResponse & {isClaimed: boolean};
