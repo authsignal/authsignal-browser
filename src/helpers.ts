@@ -1,3 +1,5 @@
+import {AuthsignalResponse, ErrorResponse} from "./api/types";
+
 type CookieOptions = {
   name: string;
   value: string;
@@ -6,7 +8,7 @@ type CookieOptions = {
   secure: boolean;
 };
 
-export const setCookie = ({name, value, expire, domain, secure}: CookieOptions): void => {
+export function setCookie({name, value, expire, domain, secure}: CookieOptions) {
   const expireString = expire === Infinity ? " expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + expire;
   document.cookie =
     encodeURIComponent(name) +
@@ -16,13 +18,13 @@ export const setCookie = ({name, value, expire, domain, secure}: CookieOptions):
     expireString +
     (domain ? "; domain=" + domain : "") +
     (secure ? "; secure" : "");
-};
+}
 
-export const getCookieDomain = (): string => {
+export function getCookieDomain() {
   return document.location.hostname.replace("www.", "");
-};
+}
 
-export const getCookie = (name: string) => {
+export function getCookie(name: string) {
   if (!name) {
     return null;
   }
@@ -36,4 +38,8 @@ export const getCookie = (name: string) => {
       )
     ) || null
   );
-};
+}
+
+export function logErrorResponse(errorResponse: ErrorResponse) {
+  console.error(errorResponse.errorDescription ?? errorResponse.error);
+}

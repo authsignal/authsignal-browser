@@ -55,8 +55,9 @@ export type ChallengeResponse = {
   challengeId: string;
 };
 
-export type AuthsignalResponse<T> =
-  | T
-  | {
-      error: string;
-    };
+export type ErrorResponse = {
+  error: string;
+  errorDescription?: string;
+};
+
+export type AuthsignalResponse<T> = T | ErrorResponse;

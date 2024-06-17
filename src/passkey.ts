@@ -2,6 +2,7 @@ import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
+import {logErrorResponse} from "./helpers";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -29,7 +30,7 @@ export class Passkey {
     const optionsResponse = await this.api.registrationOptions({username: userName, token, authenticatorAttachment});
 
     if ("error" in optionsResponse) {
-      console.error(optionsResponse.error);
+      logErrorResponse(optionsResponse);
       return;
     }
 
@@ -42,7 +43,7 @@ export class Passkey {
     });
 
     if ("error" in addAuthenticatorResponse) {
-      console.error(addAuthenticatorResponse.error);
+      logErrorResponse(addAuthenticatorResponse);
       return;
     }
 
@@ -69,7 +70,7 @@ export class Passkey {
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
-      console.error(challengeResponse.error);
+      logErrorResponse(challengeResponse);
       return;
     }
 
@@ -79,7 +80,7 @@ export class Passkey {
     });
 
     if ("error" in optionsResponse) {
-      console.error(optionsResponse.error);
+      logErrorResponse(optionsResponse);
       return;
     }
 
@@ -93,7 +94,7 @@ export class Passkey {
     });
 
     if ("error" in verifyResponse) {
-      console.error(verifyResponse.error);
+      logErrorResponse(verifyResponse);
       return;
     }
 
