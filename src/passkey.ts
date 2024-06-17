@@ -2,6 +2,7 @@ import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
+import {logErrorResponse} from "./helpers";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -28,6 +29,11 @@ export class Passkey {
   async signUp({userName, token, authenticatorAttachment = "platform"}: SignUpParams) {
     const optionsResponse = await this.api.registrationOptions({username: userName, token, authenticatorAttachment});
 
+    if ("error" in optionsResponse) {
+      logErrorResponse(optionsResponse);
+      return;
+    }
+
     const registrationResponse = await startRegistration(optionsResponse.options);
 
     const addAuthenticatorResponse = await this.api.addAuthenticator({
@@ -36,11 +42,16 @@ export class Passkey {
       token,
     });
 
-    if (addAuthenticatorResponse?.isVerified) {
+    if ("error" in addAuthenticatorResponse) {
+      logErrorResponse(addAuthenticatorResponse);
+      return;
+    }
+
+    if (addAuthenticatorResponse.isVerified) {
       this.storeCredentialAgainstDevice(registrationResponse);
     }
 
-    return addAuthenticatorResponse?.accessToken;
+    return addAuthenticatorResponse.accessToken;
   }
 
   async signIn(): Promise<string | undefined>;
@@ -58,10 +69,20 @@ export class Passkey {
 
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
+    if (challengeResponse && "error" in challengeResponse) {
+      logErrorResponse(challengeResponse);
+      return;
+    }
+
     const optionsResponse = await this.api.authenticationOptions({
       token: params?.token,
       challengeId: challengeResponse?.challengeId,
     });
+
+    if ("error" in optionsResponse) {
+      logErrorResponse(optionsResponse);
+      return;
+    }
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
 
@@ -72,11 +93,16 @@ export class Passkey {
       deviceId: this.anonymousId,
     });
 
-    if (verifyResponse?.isVerified) {
+    if ("error" in verifyResponse) {
+      logErrorResponse(verifyResponse);
+      return;
+    }
+
+    if (verifyResponse.isVerified) {
       this.storeCredentialAgainstDevice(authenticationResponse);
     }
 
-    return verifyResponse?.accessToken;
+    return verifyResponse.accessToken;
   }
 
   async isAvailableOnDevice() {
