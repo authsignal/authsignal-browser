@@ -1,8 +1,10 @@
 import {
   AddAuthenticatorRequest,
   AddAuthenticatorResponse,
+  ApiError,
   AuthenticationOptsRequest,
   AuthenticationOptsResponse,
+  AuthsignalResponse,
   ChallengeResponse,
   PasskeyAuthenticatorResponse,
   RegistrationOptsRequest,
@@ -82,7 +84,7 @@ export class PasskeyApiClient {
     challengeId,
     authenticationCredential,
     deviceId,
-  }: {token?: string} & VerifyRequest): Promise<VerifyResponse> {
+  }: {token?: string} & VerifyRequest): Promise<AuthsignalResponse<VerifyResponse>> {
     const body: VerifyRequest = {challengeId, authenticationCredential, deviceId};
 
     const response = fetch(`${this.baseUrl}/client/verify/passkey`, {

@@ -72,11 +72,15 @@ export class Passkey {
       deviceId: this.anonymousId,
     });
 
-    if (verifyResponse?.isVerified) {
+    if (verifyResponse.error) {
+      console.error(verifyResponse.error);
+    }
+
+    if (verifyResponse?.data.isVerified) {
       this.storeCredentialAgainstDevice(authenticationResponse);
     }
 
-    return verifyResponse?.accessToken;
+    return verifyResponse?.data.accessToken;
   }
 
   async isAvailableOnDevice() {

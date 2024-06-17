@@ -54,3 +54,8 @@ export type PasskeyAuthenticatorResponse = {
 export type ChallengeResponse = {
   challengeId: string;
 };
+
+export type AuthsignalResponse<T> = {
+  data: T;
+  error?: string;
+};
