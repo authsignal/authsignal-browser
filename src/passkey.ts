@@ -28,6 +28,11 @@ export class Passkey {
   async signUp({userName, token, authenticatorAttachment = "platform"}: SignUpParams) {
     const optionsResponse = await this.api.registrationOptions({username: userName, token, authenticatorAttachment});
 
+    if ("error" in optionsResponse) {
+      console.error(optionsResponse.error);
+      return;
+    }
+
     const registrationResponse = await startRegistration(optionsResponse.options);
 
     const addAuthenticatorResponse = await this.api.addAuthenticator({
@@ -36,11 +41,16 @@ export class Passkey {
       token,
     });
 
-    if (addAuthenticatorResponse?.isVerified) {
+    if ("error" in addAuthenticatorResponse) {
+      console.error(addAuthenticatorResponse.error);
+      return;
+    }
+
+    if (addAuthenticatorResponse.isVerified) {
       this.storeCredentialAgainstDevice(registrationResponse);
     }
 
-    return addAuthenticatorResponse?.accessToken;
+    return addAuthenticatorResponse.accessToken;
   }
 
   async signIn(): Promise<string | undefined>;
@@ -58,10 +68,20 @@ export class Passkey {
 
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
+    if (challengeResponse && "error" in challengeResponse) {
+      console.error(challengeResponse.error);
+      return;
+    }
+
     const optionsResponse = await this.api.authenticationOptions({
       token: params?.token,
       challengeId: challengeResponse?.challengeId,
     });
+
+    if ("error" in optionsResponse) {
+      console.error(optionsResponse.error);
+      return;
+    }
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
 
@@ -72,15 +92,16 @@ export class Passkey {
       deviceId: this.anonymousId,
     });
 
-    if (verifyResponse.error) {
+    if ("error" in verifyResponse) {
       console.error(verifyResponse.error);
+      return;
     }
 
-    if (verifyResponse?.data.isVerified) {
+    if (verifyResponse.isVerified) {
       this.storeCredentialAgainstDevice(authenticationResponse);
     }
 
-    return verifyResponse?.data.accessToken;
+    return verifyResponse.accessToken;
   }
 
   async isAvailableOnDevice() {
