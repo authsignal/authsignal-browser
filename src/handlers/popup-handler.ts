@@ -114,6 +114,11 @@ export class PopupHandler {
 
     this.popup = new A11yDialog(container);
 
+    // Safari and Firefox will fail the WebAuthn request if the document making
+    // the request does not have focus. This will reduce the chances of that 
+    // happening by focusing on the dialog container.
+    container.focus();
+
     // Make sure to remove any trace of the dialog on hide
     this.popup.on("hide", () => {
       this.destroy();
