@@ -27,8 +27,6 @@ export class Authsignal {
   anonymousIdCookieName = "";
   passkey: Passkey;
 
-  private _token: string | undefined = undefined;
-
   constructor({
     cookieDomain,
     cookieName = DEFAULT_COOKIE_NAME,
@@ -132,6 +130,8 @@ export class Authsignal {
     popupHandler.show({url: popupUrl});
 
     return new Promise<TokenPayload>((resolve) => {
+      let token: string | undefined = undefined;
+
       const onMessage = (event: MessageEvent) => {
         let data: AuthsignalWindowMessageData | null = null;
 
@@ -142,14 +142,14 @@ export class Authsignal {
         }
 
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
-          this._token = data.token;
+          token = data.token;
 
           popupHandler.close();
         }
       };
 
       popupHandler.on("hide", () => {
-        resolve({token: this._token});
+        resolve({token});
       });
 
       window.addEventListener("message", onMessage, false);
@@ -176,10 +176,8 @@ export class Authsignal {
         }
 
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
-          this._token = data.token;
-
           windowHandler.close();
-          resolve({token: this._token});
+          resolve({token: data.token});
         }
       };
 
