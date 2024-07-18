@@ -1,4 +1,4 @@
-import {AuthsignalResponse, ErrorResponse} from "./api/types";
+import {ErrorResponse} from "./api/types";
 
 type CookieOptions = {
   name: string;

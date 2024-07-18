@@ -12,8 +12,21 @@ type PasskeyOptions = {
 
 type SignUpParams = {
   userName?: string;
+  userDisplayName?: string;
   token: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
+};
+
+type SignUpResponse = {
+  token?: string;
+};
+
+type SignInResponse = {
+  token?: string;
+  userId?: string;
+  userAuthenticatorId?: string;
+  userName?: string;
+  userDisplayName?: string;
 };
 
 export class Passkey {
@@ -26,8 +39,20 @@ export class Passkey {
     this.anonymousId = anonymousId;
   }
 
-  async signUp({userName, token, authenticatorAttachment = "platform"}: SignUpParams) {
-    const optionsResponse = await this.api.registrationOptions({username: userName, token, authenticatorAttachment});
+  async signUp({
+    userName,
+    userDisplayName,
+    token,
+    authenticatorAttachment = "platform",
+  }: SignUpParams): Promise<SignUpResponse | undefined> {
+    const optionsInput = {
+      username: userName,
+      displayName: userDisplayName,
+      token,
+      authenticatorAttachment,
+    };
+
+    const optionsResponse = await this.api.registrationOptions(optionsInput);
 
     if ("error" in optionsResponse) {
       logErrorResponse(optionsResponse);
@@ -51,14 +76,18 @@ export class Passkey {
       this.storeCredentialAgainstDevice(registrationResponse);
     }
 
-    return addAuthenticatorResponse.accessToken;
+    return {
+      token: addAuthenticatorResponse.accessToken,
+    };
   }
 
-  async signIn(): Promise<string | undefined>;
-  async signIn(params?: {action: string; autofill?: boolean}): Promise<string | undefined>;
-  async signIn(params?: {token: string}): Promise<string | undefined>;
-  async signIn(params?: {autofill: boolean}): Promise<string | undefined>;
-  async signIn(params?: {token?: string; autofill?: boolean; action?: string} | undefined) {
+  async signIn(): Promise<SignInResponse | undefined>;
+  async signIn(params?: {action: string; autofill?: boolean}): Promise<SignInResponse | undefined>;
+  async signIn(params?: {token: string}): Promise<SignInResponse | undefined>;
+  async signIn(params?: {autofill: boolean}): Promise<SignInResponse | undefined>;
+  async signIn(
+    params?: {token?: string; autofill?: boolean; action?: string} | undefined
+  ): Promise<SignInResponse | undefined> {
     if (params?.token && params.autofill) {
       throw new Error("autofill is not supported when providing a token");
     }
@@ -102,7 +131,15 @@ export class Passkey {
       this.storeCredentialAgainstDevice(authenticationResponse);
     }
 
-    return verifyResponse.accessToken;
+    const {accessToken: token, userId, userAuthenticatorId, username: userName, userDisplayName} = verifyResponse;
+
+    return {
+      token,
+      userId,
+      userAuthenticatorId,
+      userName,
+      userDisplayName,
+    };
   }
 
   async isAvailableOnDevice() {

@@ -44,6 +44,10 @@ export type VerifyRequest = {
 export type VerifyResponse = {
   isVerified: boolean;
   accessToken?: string;
+  userId?: string;
+  userAuthenticatorId?: string;
+  username?: string;
+  userDisplayName?: string;
 };
 
 export type PasskeyAuthenticatorResponse = {
