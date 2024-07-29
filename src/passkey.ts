@@ -21,6 +21,13 @@ type SignUpResponse = {
   token?: string;
 };
 
+type SignInParams = {
+  token?: string;
+  autofill?: boolean;
+  action?: string;
+  onVerificationStarted?: () => unknown;
+};
+
 type SignInResponse = {
   token?: string;
   userId?: string;
@@ -81,13 +88,7 @@ export class Passkey {
     };
   }
 
-  async signIn(): Promise<SignInResponse | undefined>;
-  async signIn(params?: {action: string; autofill?: boolean}): Promise<SignInResponse | undefined>;
-  async signIn(params?: {token: string}): Promise<SignInResponse | undefined>;
-  async signIn(params?: {autofill: boolean}): Promise<SignInResponse | undefined>;
-  async signIn(
-    params?: {token?: string; autofill?: boolean; action?: string} | undefined
-  ): Promise<SignInResponse | undefined> {
+  async signIn(params?: SignInParams): Promise<SignInResponse | undefined> {
     if (params?.token && params.autofill) {
       throw new Error("autofill is not supported when providing a token");
     }
@@ -114,6 +115,10 @@ export class Passkey {
     }
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
+
+    if (params?.onVerificationStarted) {
+      params.onVerificationStarted();
+    }
 
     const verifyResponse = await this.api.verify({
       challengeId: optionsResponse.challengeId,
