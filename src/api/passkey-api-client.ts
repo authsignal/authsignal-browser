@@ -3,25 +3,20 @@ import {
   AddAuthenticatorResponse,
   AuthenticationOptsRequest,
   AuthenticationOptsResponse,
-  AuthsignalResponse,
   ChallengeResponse,
   PasskeyAuthenticatorResponse,
   RegistrationOptsRequest,
   RegistrationOptsResponse,
   VerifyRequest,
   VerifyResponse,
-} from "./types";
-
-type PasskeyApiClientOptions = {
-  baseUrl: string;
-  tenantId: string;
-};
+} from "./types/passkey";
+import {ApiClientOptions, AuthsignalResponse} from "./types/shared";
 
 export class PasskeyApiClient {
   tenantId: string;
   baseUrl: string;
 
-  constructor({baseUrl, tenantId}: PasskeyApiClientOptions) {
+  constructor({baseUrl, tenantId}: ApiClientOptions) {
     this.tenantId = tenantId;
     this.baseUrl = baseUrl;
   }

@@ -12,6 +12,8 @@ import {
 } from "./types";
 import {Passkey} from "./passkey";
 import {PopupHandler, WindowHandler} from "./handlers";
+import {Totp} from "./totp";
+import {TokenCache} from "./token-cache";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 const DEFAULT_PROFILING_COOKIE_NAME = "__as_pid";
@@ -26,6 +28,7 @@ export class Authsignal {
   cookieDomain = "";
   anonymousIdCookieName = "";
   passkey: Passkey;
+  totp: Totp;
 
   constructor({
     cookieDomain,
@@ -57,6 +60,11 @@ export class Authsignal {
     }
 
     this.passkey = new Passkey({tenantId, baseUrl, anonymousId: this.anonymousId});
+    this.totp = new Totp({tenantId, baseUrl});
+  }
+
+  setToken(token: string) {
+    TokenCache.shared.token = token;
   }
 
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
