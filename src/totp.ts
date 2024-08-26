@@ -8,6 +8,10 @@ type TotpOptions = {
   tenantId: string;
 };
 
+type VerifyParams = {
+  code: string;
+};
+
 export class Totp {
   private api: TotpApiClient;
   private cache = TokenCache.shared;
@@ -24,7 +28,7 @@ export class Totp {
     return this.api.enroll({token: this.cache.token});
   }
 
-  async verify(code: string): Promise<AuthsignalResponse<VerifyResponse>> {
+  async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }

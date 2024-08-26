@@ -3,14 +3,13 @@ import {
   AddAuthenticatorResponse,
   AuthenticationOptsRequest,
   AuthenticationOptsResponse,
-  ChallengeResponse,
   PasskeyAuthenticatorResponse,
   RegistrationOptsRequest,
   RegistrationOptsResponse,
   VerifyRequest,
   VerifyResponse,
 } from "./types/passkey";
-import {ApiClientOptions, AuthsignalResponse} from "./types/shared";
+import {ApiClientOptions, AuthsignalResponse, ChallengeResponse} from "./types/shared";
 
 export class PasskeyApiClient {
   tenantId: string;

@@ -54,7 +54,3 @@ export type PasskeyAuthenticatorResponse = {
   credentialId: string;
   verifiedAt: string;
 };
-
-export type ChallengeResponse = {
-  challengeId: string;
-};

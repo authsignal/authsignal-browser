@@ -3,6 +3,14 @@ export type ApiClientOptions = {
   tenantId: string;
 };
 
+export type EnrollResponse = {
+  userAuthenticatorId: string;
+};
+
+export type ChallengeResponse = {
+  challengeId: string;
+};
+
 export type VerifyResponse = {
   isVerified: boolean;
   token?: string;
