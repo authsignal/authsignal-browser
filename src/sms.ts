@@ -44,6 +44,12 @@ export class Sms {
       return this.cache.handleTokenNotSetError();
     }
 
-    return this.api.verify({token: this.cache.token, code});
+    const verifyResponse = await this.api.verify({token: this.cache.token, code});
+
+    if (verifyResponse.token) {
+      this.cache.token = verifyResponse.token;
+    }
+
+    return verifyResponse;
   }
 }
