@@ -1,4 +1,4 @@
-import {ErrorResponse} from "./api/types";
+import {ErrorResponse} from "./api/types/shared";
 
 type CookieOptions = {
   name: string;
