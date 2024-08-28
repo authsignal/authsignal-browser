@@ -3,6 +3,8 @@ import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 import {logErrorResponse} from "./helpers";
+import {TokenCache} from "./token-cache";
+import {AuthsignalResponse} from "./api/types/shared";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -40,6 +42,7 @@ export class Passkey {
   public api: PasskeyApiClient;
   private passkeyLocalStorageKey = "as_passkey_credential_id";
   private anonymousId: string;
+  private cache = TokenCache.shared;
 
   constructor({baseUrl, tenantId, anonymousId}: PasskeyOptions) {
     this.api = new PasskeyApiClient({baseUrl, tenantId});
@@ -51,11 +54,17 @@ export class Passkey {
     userDisplayName,
     token,
     authenticatorAttachment = "platform",
-  }: SignUpParams): Promise<SignUpResponse | undefined> {
+  }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse | undefined>> {
+    const userToken = token ?? this.cache.token;
+
+    if (!userToken) {
+      return this.cache.handleTokenNotSetError();
+    }
+
     const optionsInput = {
       username: userName,
       displayName: userDisplayName,
-      token,
+      token: userToken,
       authenticatorAttachment,
     };
 
@@ -71,7 +80,7 @@ export class Passkey {
     const addAuthenticatorResponse = await this.api.addAuthenticator({
       challengeId: optionsResponse.challengeId,
       registrationCredential: registrationResponse,
-      token,
+      token: userToken,
     });
 
     if ("error" in addAuthenticatorResponse) {

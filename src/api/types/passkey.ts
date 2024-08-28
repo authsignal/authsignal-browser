@@ -54,14 +54,3 @@ export type PasskeyAuthenticatorResponse = {
   credentialId: string;
   verifiedAt: string;
 };
-
-export type ChallengeResponse = {
-  challengeId: string;
-};
-
-export type ErrorResponse = {
-  error: string;
-  errorDescription?: string;
-};
-
-export type AuthsignalResponse<T> = T | ErrorResponse;
