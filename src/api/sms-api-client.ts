@@ -1,3 +1,4 @@
+import {buildHeaders} from "./helpers";
 import {ApiClientOptions, ChallengeResponse, EnrollResponse, VerifyResponse} from "./types/shared";
 
 export class SmsApiClient {
@@ -14,7 +15,7 @@ export class SmsApiClient {
 
     const response = fetch(`${this.baseUrl}/client/user-authenticators/sms`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
@@ -24,7 +25,7 @@ export class SmsApiClient {
   async challenge({token}: {token: string}): Promise<ChallengeResponse> {
     const response = fetch(`${this.baseUrl}/client/challenge/sms`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
     });
 
     return (await response).json();
@@ -35,19 +36,10 @@ export class SmsApiClient {
 
     const response = fetch(`${this.baseUrl}/client/verify/sms`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
     return (await response).json();
-  }
-
-  private buildHeaders(token?: string) {
-    const authorizationHeader = token ? `Bearer ${token}` : `Basic ${window.btoa(encodeURIComponent(this.tenantId))}`;
-
-    return {
-      "Content-Type": "application/json",
-      Authorization: authorizationHeader,
-    };
   }
 }
