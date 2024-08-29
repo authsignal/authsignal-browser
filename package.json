@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -34,6 +34,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^14.1.0",
     "@rollup/plugin-terser": "^0.4.3",
     "@rollup/plugin-typescript": "^8.5.0",

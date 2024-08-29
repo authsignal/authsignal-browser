@@ -1,3 +1,4 @@
+import {buildHeaders} from "./helpers";
 import {
   AddAuthenticatorRequest,
   AddAuthenticatorResponse,
@@ -31,7 +32,7 @@ export class PasskeyApiClient {
 
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
@@ -46,7 +47,7 @@ export class PasskeyApiClient {
 
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
@@ -65,7 +66,7 @@ export class PasskeyApiClient {
 
     const response = fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
@@ -82,7 +83,7 @@ export class PasskeyApiClient {
 
     const response = fetch(`${this.baseUrl}/client/verify/passkey`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
@@ -92,7 +93,7 @@ export class PasskeyApiClient {
   async getPasskeyAuthenticator(credentialId: string): Promise<AuthsignalResponse<PasskeyAuthenticatorResponse>> {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey?credentialId=${credentialId}`, {
       method: "GET",
-      headers: this.buildHeaders(),
+      headers: buildHeaders({tenantId: this.tenantId}),
     });
 
     if (!response.ok) {
@@ -105,19 +106,10 @@ export class PasskeyApiClient {
   async challenge(action: string): Promise<AuthsignalResponse<ChallengeResponse>> {
     const response = fetch(`${this.baseUrl}/client/challenge`, {
       method: "POST",
-      headers: this.buildHeaders(),
+      headers: buildHeaders({tenantId: this.tenantId}),
       body: JSON.stringify({action}),
     });
 
     return (await response).json();
-  }
-
-  private buildHeaders(token?: string) {
-    const authorizationHeader = token ? `Bearer ${token}` : `Basic ${window.btoa(encodeURIComponent(this.tenantId))}`;
-
-    return {
-      "Content-Type": "application/json",
-      Authorization: authorizationHeader,
-    };
   }
 }

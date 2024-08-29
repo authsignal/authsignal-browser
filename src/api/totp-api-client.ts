@@ -1,3 +1,4 @@
+import {buildHeaders} from "./helpers";
 import {ApiClientOptions, VerifyResponse} from "./types/shared";
 import {EnrollResponse} from "./types/totp";
 
@@ -13,7 +14,7 @@ export class TotpApiClient {
   async enroll({token}: {token: string}): Promise<EnrollResponse> {
     const response = fetch(`${this.baseUrl}/client/user-authenticators/totp`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
     });
 
     return (await response).json();
@@ -24,19 +25,10 @@ export class TotpApiClient {
 
     const response = fetch(`${this.baseUrl}/client/verify/totp`, {
       method: "POST",
-      headers: this.buildHeaders(token),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
     return (await response).json();
-  }
-
-  private buildHeaders(token?: string) {
-    const authorizationHeader = token ? `Bearer ${token}` : `Basic ${window.btoa(encodeURIComponent(this.tenantId))}`;
-
-    return {
-      "Content-Type": "application/json",
-      Authorization: authorizationHeader,
-    };
   }
 }
