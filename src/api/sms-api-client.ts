@@ -32,7 +32,7 @@ export class SmsApiClient {
   }
 
   async verify({token, code}: {token: string; code: string}): Promise<VerifyResponse> {
-    const body = {code};
+    const body = {verificationCode: code};
 
     const response = fetch(`${this.baseUrl}/client/verify/sms`, {
       method: "POST",
