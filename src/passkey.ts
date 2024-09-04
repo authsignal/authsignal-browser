@@ -15,7 +15,7 @@ type PasskeyOptions = {
 type SignUpParams = {
   userName?: string;
   userDisplayName?: string;
-  token: string;
+  token?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
 };
 
@@ -92,6 +92,10 @@ export class Passkey {
       this.storeCredentialAgainstDevice(registrationResponse);
     }
 
+    if (addAuthenticatorResponse.accessToken) {
+      this.cache.token = addAuthenticatorResponse.accessToken;
+    }
+
     return {
       token: addAuthenticatorResponse.accessToken,
     };
@@ -143,6 +147,10 @@ export class Passkey {
 
     if (verifyResponse.isVerified) {
       this.storeCredentialAgainstDevice(authenticationResponse);
+    }
+
+    if (verifyResponse.accessToken) {
+      this.cache.token = verifyResponse.accessToken;
     }
 
     const {accessToken: token, userId, userAuthenticatorId, username: userName, userDisplayName} = verifyResponse;

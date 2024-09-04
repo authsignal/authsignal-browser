@@ -35,8 +35,8 @@ export class Totp {
 
     const verifyResponse = await this.api.verify({token: this.cache.token, code});
 
-    if (verifyResponse.token) {
-      this.cache.token = verifyResponse.token;
+    if (verifyResponse.accessToken) {
+      this.cache.token = verifyResponse.accessToken;
     }
 
     return verifyResponse;
