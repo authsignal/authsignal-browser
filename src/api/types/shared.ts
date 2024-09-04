@@ -13,7 +13,7 @@ export type ChallengeResponse = {
 
 export type VerifyResponse = {
   isVerified: boolean;
-  token?: string;
+  accessToken?: string;
   failureReason?: string;
 };
 
