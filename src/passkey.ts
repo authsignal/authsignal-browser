@@ -54,7 +54,7 @@ export class Passkey {
     userDisplayName,
     token,
     authenticatorAttachment = "platform",
-  }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse | undefined>> {
+  }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
     const userToken = token ?? this.cache.token;
 
     if (!userToken) {
@@ -72,7 +72,8 @@ export class Passkey {
 
     if ("error" in optionsResponse) {
       logErrorResponse(optionsResponse);
-      return;
+
+      return optionsResponse;
     }
 
     const registrationResponse = await startRegistration(optionsResponse.options);
@@ -85,7 +86,8 @@ export class Passkey {
 
     if ("error" in addAuthenticatorResponse) {
       logErrorResponse(addAuthenticatorResponse);
-      return;
+
+      return addAuthenticatorResponse;
     }
 
     if (addAuthenticatorResponse.isVerified) {
@@ -101,7 +103,7 @@ export class Passkey {
     };
   }
 
-  async signIn(params?: SignInParams): Promise<SignInResponse | undefined> {
+  async signIn(params?: SignInParams): Promise<AuthsignalResponse<SignInResponse>> {
     if (params?.token && params.autofill) {
       throw new Error("autofill is not supported when providing a token");
     }
@@ -114,7 +116,8 @@ export class Passkey {
 
     if (challengeResponse && "error" in challengeResponse) {
       logErrorResponse(challengeResponse);
-      return;
+
+      return challengeResponse;
     }
 
     const optionsResponse = await this.api.authenticationOptions({
@@ -124,7 +127,8 @@ export class Passkey {
 
     if ("error" in optionsResponse) {
       logErrorResponse(optionsResponse);
-      return;
+
+      return optionsResponse;
     }
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
@@ -142,7 +146,8 @@ export class Passkey {
 
     if ("error" in verifyResponse) {
       logErrorResponse(verifyResponse);
-      return;
+
+      return verifyResponse;
     }
 
     if (verifyResponse.isVerified) {
