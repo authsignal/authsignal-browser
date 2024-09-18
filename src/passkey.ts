@@ -21,6 +21,7 @@ type SignUpParams = {
 
 type SignUpResponse = {
   token?: string;
+  registrationResponse?: RegistrationResponseJSON;
 };
 
 type SignInParams = {
@@ -36,6 +37,7 @@ type SignInResponse = {
   userAuthenticatorId?: string;
   userName?: string;
   userDisplayName?: string;
+  authenticationResponse?: AuthenticationResponseJSON;
 };
 
 export class Passkey {
@@ -100,6 +102,7 @@ export class Passkey {
 
     return {
       token: addAuthenticatorResponse.accessToken,
+      registrationResponse,
     };
   }
 
@@ -166,6 +169,7 @@ export class Passkey {
       userAuthenticatorId,
       userName,
       userDisplayName,
+      authenticationResponse,
     };
   }
 
