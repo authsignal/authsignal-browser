@@ -72,3 +72,12 @@ export type AuthsignalWindowMessageData = {
 export type TokenPayload = {
   token?: string;
 };
+
+export type AuthsignalToken = {
+  other: {
+    tenantId: string;
+    userId: string;
+    actionCode: string;
+    idempotencyKey: string;
+  };
+};

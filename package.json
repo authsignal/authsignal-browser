@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "0.5.11",
+  "version": "0.6.0",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -31,6 +31,7 @@
     "@simplewebauthn/browser": "^10.0.0",
     "@simplewebauthn/types": "^10.0.0",
     "a11y-dialog": "8.0.4",
+    "jwt-decode": "^4.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
