@@ -1,12 +1,10 @@
 import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
-import {jwtDecode} from "jwt-decode";
 
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 import {logErrorResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
 import {AuthsignalResponse} from "./api/types/shared";
-import {AuthsignalToken} from "./types";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -95,11 +93,9 @@ export class Passkey {
     }
 
     if (addAuthenticatorResponse.isVerified) {
-      const userId = jwtDecode<AuthsignalToken>(userToken).other.userId;
-
       this.storeCredentialAgainstDevice({
         ...registrationResponse,
-        userId,
+        userId: addAuthenticatorResponse.userId,
       });
     }
 
