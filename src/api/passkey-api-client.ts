@@ -90,8 +90,12 @@ export class PasskeyApiClient {
     return (await response).json();
   }
 
-  async getPasskeyAuthenticator(credentialId: string): Promise<AuthsignalResponse<PasskeyAuthenticatorResponse>> {
-    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey?credentialId=${credentialId}`, {
+  async getPasskeyAuthenticator({
+    credentialIds,
+  }: {
+    credentialIds: string[];
+  }): Promise<AuthsignalResponse<PasskeyAuthenticatorResponse>> {
+    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey?credentialIds=${credentialIds}`, {
       method: "GET",
       headers: buildHeaders({tenantId: this.tenantId}),
     });

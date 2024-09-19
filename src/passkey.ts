@@ -42,7 +42,7 @@ type SignInResponse = {
 
 export class Passkey {
   public api: PasskeyApiClient;
-  private passkeyLocalStorageKey = "as_passkey_credential_id";
+  private passkeyLocalStorageKey = "as_user_passkey_map";
   private anonymousId: string;
   private cache = TokenCache.shared;
 
@@ -93,7 +93,10 @@ export class Passkey {
     }
 
     if (addAuthenticatorResponse.isVerified) {
-      this.storeCredentialAgainstDevice(registrationResponse);
+      this.storeCredentialAgainstDevice({
+        ...registrationResponse,
+        userId: addAuthenticatorResponse.userId,
+      });
     }
 
     if (addAuthenticatorResponse.accessToken) {
@@ -154,7 +157,7 @@ export class Passkey {
     }
 
     if (verifyResponse.isVerified) {
-      this.storeCredentialAgainstDevice(authenticationResponse);
+      this.storeCredentialAgainstDevice({...authenticationResponse, userId: verifyResponse.userId});
     }
 
     if (verifyResponse.accessToken) {
@@ -173,15 +176,27 @@ export class Passkey {
     };
   }
 
-  async isAvailableOnDevice() {
-    const credentialId = localStorage.getItem(this.passkeyLocalStorageKey);
+  async isAvailableOnDevice({userId}: {userId: string}) {
+    if (!userId) {
+      throw new Error("userId is required");
+    }
 
-    if (!credentialId) {
+    const storedCredentials = localStorage.getItem(this.passkeyLocalStorageKey);
+
+    if (!storedCredentials) {
+      return false;
+    }
+
+    const credentialsMap = JSON.parse(storedCredentials) as Record<string, string[]>;
+
+    const credentialIds = credentialsMap[userId] ?? [];
+
+    if (credentialIds.length === 0) {
       return false;
     }
 
     try {
-      await this.api.getPasskeyAuthenticator(credentialId);
+      await this.api.getPasskeyAuthenticator({credentialIds});
 
       return true;
     } catch {
@@ -192,11 +207,23 @@ export class Passkey {
   private storeCredentialAgainstDevice({
     id,
     authenticatorAttachment,
-  }: AuthenticationResponseJSON | RegistrationResponseJSON) {
+    userId = "",
+  }: (AuthenticationResponseJSON | RegistrationResponseJSON) & {userId?: string}) {
     if (authenticatorAttachment === "cross-platform") {
       return;
     }
 
-    localStorage.setItem(this.passkeyLocalStorageKey, id);
+    const storedCredentials = localStorage.getItem(this.passkeyLocalStorageKey);
+    const credentialsMap = storedCredentials ? JSON.parse(storedCredentials) : {};
+
+    if (credentialsMap[userId]) {
+      if (!credentialsMap[userId].includes(id)) {
+        credentialsMap[userId].push(id);
+      }
+    } else {
+      credentialsMap[userId] = [id];
+    }
+
+    localStorage.setItem(this.passkeyLocalStorageKey, JSON.stringify(credentialsMap));
   }
 }

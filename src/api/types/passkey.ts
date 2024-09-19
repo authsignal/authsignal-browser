@@ -33,6 +33,7 @@ export type AddAuthenticatorResponse = {
   isVerified: boolean;
   accessToken?: string;
   userAuthenticatorId?: string;
+  userId?: string;
 };
 
 export type VerifyRequest = {

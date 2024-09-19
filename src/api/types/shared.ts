@@ -5,6 +5,7 @@ export type ApiClientOptions = {
 
 export type EnrollResponse = {
   userAuthenticatorId: string;
+  userId: string;
 };
 
 export type ChallengeResponse = {

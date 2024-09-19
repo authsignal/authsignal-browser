@@ -1,5 +1,6 @@
 export type EnrollResponse = {
-  userAuthenticatorID: string;
+  userAuthenticatorId: string;
+  userId: string;
   uri: string;
   secret: string;
 };
