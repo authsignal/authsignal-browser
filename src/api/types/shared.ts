@@ -1,6 +1,7 @@
 export type ApiClientOptions = {
   baseUrl: string;
   tenantId: string;
+  onTokenExpired?: () => void;
 };
 
 export type EnrollResponse = {
@@ -20,6 +21,8 @@ export type VerifyResponse = {
 
 export type ErrorResponse = {
   error: string;
+  // eslint-disable-next-line @typescript-eslint/ban-types -- This is a valid use case for an empty object
+  errorCode?: "token_expired" | (string & {});
   errorDescription?: string;
 };
 

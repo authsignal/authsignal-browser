@@ -10,6 +10,7 @@ type PasskeyOptions = {
   baseUrl: string;
   tenantId: string;
   anonymousId: string;
+  onTokenExpired?: () => void;
 };
 
 type SignUpParams = {
@@ -32,6 +33,7 @@ type SignInParams = {
 };
 
 type SignInResponse = {
+  isVerified: boolean;
   token?: string;
   userId?: string;
   userAuthenticatorId?: string;
@@ -46,8 +48,8 @@ export class Passkey {
   private anonymousId: string;
   private cache = TokenCache.shared;
 
-  constructor({baseUrl, tenantId, anonymousId}: PasskeyOptions) {
-    this.api = new PasskeyApiClient({baseUrl, tenantId});
+  constructor({baseUrl, tenantId, anonymousId, onTokenExpired}: PasskeyOptions) {
+    this.api = new PasskeyApiClient({baseUrl, tenantId, onTokenExpired});
     this.anonymousId = anonymousId;
   }
 
@@ -164,9 +166,17 @@ export class Passkey {
       this.cache.token = verifyResponse.accessToken;
     }
 
-    const {accessToken: token, userId, userAuthenticatorId, username: userName, userDisplayName} = verifyResponse;
+    const {
+      accessToken: token,
+      userId,
+      userAuthenticatorId,
+      username: userName,
+      userDisplayName,
+      isVerified,
+    } = verifyResponse;
 
     return {
+      isVerified,
       token,
       userId,
       userAuthenticatorId,
