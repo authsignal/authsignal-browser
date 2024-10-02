@@ -58,6 +58,7 @@ export type AuthsignalOptions = {
   cookieName?: string;
   baseUrl?: string;
   tenantId: string;
+  onTokenExpired?: () => void;
 };
 
 export enum AuthsignalWindowMessage {

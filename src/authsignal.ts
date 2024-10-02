@@ -40,6 +40,7 @@ export class Authsignal {
     cookieName = DEFAULT_COOKIE_NAME,
     baseUrl = DEFAULT_BASE_URL,
     tenantId,
+    onTokenExpired,
   }: AuthsignalOptions) {
     this.cookieDomain = cookieDomain || getCookieDomain();
     this.anonymousIdCookieName = cookieName;
@@ -64,10 +65,10 @@ export class Authsignal {
       });
     }
 
-    this.passkey = new Passkey({tenantId, baseUrl, anonymousId: this.anonymousId});
-    this.totp = new Totp({tenantId, baseUrl});
-    this.email = new Email({tenantId, baseUrl});
-    this.sms = new Sms({tenantId, baseUrl});
+    this.passkey = new Passkey({tenantId, baseUrl, anonymousId: this.anonymousId, onTokenExpired});
+    this.totp = new Totp({tenantId, baseUrl, onTokenExpired});
+    this.email = new Email({tenantId, baseUrl, onTokenExpired});
+    this.sms = new Sms({tenantId, baseUrl, onTokenExpired});
   }
 
   setToken(token: string) {

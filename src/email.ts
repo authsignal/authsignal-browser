@@ -1,10 +1,10 @@
 import {EmailApiClient} from "./api/email-api-client";
-import {AuthsignalResponse, ChallengeResponse, EnrollResponse, VerifyResponse} from "./api/types/shared";
 import {TokenCache} from "./token-cache";
 
 type EmailOptions = {
   baseUrl: string;
   tenantId: string;
+  onTokenExpired?: () => void;
 };
 
 type EnrollParams = {
@@ -19,11 +19,11 @@ export class Email {
   private api: EmailApiClient;
   private cache = TokenCache.shared;
 
-  constructor({baseUrl, tenantId}: EmailOptions) {
-    this.api = new EmailApiClient({baseUrl, tenantId});
+  constructor({baseUrl, tenantId, onTokenExpired}: EmailOptions) {
+    this.api = new EmailApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
-  async enroll({email}: EnrollParams): Promise<AuthsignalResponse<EnrollResponse>> {
+  async enroll({email}: EnrollParams) {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
@@ -31,7 +31,7 @@ export class Email {
     return this.api.enroll({token: this.cache.token, email});
   }
 
-  async challenge(): Promise<AuthsignalResponse<ChallengeResponse>> {
+  async challenge() {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
@@ -39,14 +39,14 @@ export class Email {
     return this.api.challenge({token: this.cache.token});
   }
 
-  async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
+  async verify({code}: VerifyParams) {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
     const verifyResponse = await this.api.verify({token: this.cache.token, code});
 
-    if (verifyResponse.accessToken) {
+    if ("accessToken" in verifyResponse && verifyResponse.accessToken) {
       this.cache.token = verifyResponse.accessToken;
     }
 

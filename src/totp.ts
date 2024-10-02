@@ -1,11 +1,10 @@
 import {TotpApiClient} from "./api/totp-api-client";
-import {AuthsignalResponse, VerifyResponse} from "./api/types/shared";
-import {EnrollResponse} from "./api/types/totp";
 import {TokenCache} from "./token-cache";
 
 type TotpOptions = {
   baseUrl: string;
   tenantId: string;
+  onTokenExpired?: () => void;
 };
 
 type VerifyParams = {
@@ -16,11 +15,11 @@ export class Totp {
   private api: TotpApiClient;
   private cache = TokenCache.shared;
 
-  constructor({baseUrl, tenantId}: TotpOptions) {
-    this.api = new TotpApiClient({baseUrl, tenantId});
+  constructor({baseUrl, tenantId, onTokenExpired}: TotpOptions) {
+    this.api = new TotpApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
-  async enroll(): Promise<AuthsignalResponse<EnrollResponse>> {
+  async enroll() {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
@@ -28,14 +27,14 @@ export class Totp {
     return this.api.enroll({token: this.cache.token});
   }
 
-  async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
+  async verify({code}: VerifyParams) {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
     const verifyResponse = await this.api.verify({token: this.cache.token, code});
 
-    if (verifyResponse.accessToken) {
+    if ("accessToken" in verifyResponse && verifyResponse.accessToken) {
       this.cache.token = verifyResponse.accessToken;
     }
 
