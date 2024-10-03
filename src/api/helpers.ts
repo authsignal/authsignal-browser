@@ -20,7 +20,7 @@ type HandleTokenExpiredParams<T> = {
 };
 
 export function handleTokenExpired<T extends object>({response, onTokenExpired}: HandleTokenExpiredParams<T>) {
-  if ("error" in response && response.errorCode === "token_expired" && onTokenExpired) {
+  if ("error" in response && response.errorCode === "expired_token" && onTokenExpired) {
     onTokenExpired();
   }
 }
