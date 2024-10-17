@@ -51,7 +51,7 @@ export function handleErrorResponse(errorResponse: ErrorResponse) {
 }
 
 export function handleApiResponse<T>(response: ErrorResponse | T) {
-  if (typeof response === "object" && response && "error" in response) {
+  if (response && typeof response === "object" && "error" in response) {
     const error = response.errorDescription ?? response.error;
 
     console.error(error);
@@ -60,8 +60,8 @@ export function handleApiResponse<T>(response: ErrorResponse | T) {
       error,
     };
   } else if (
-    typeof response === "object" &&
     response &&
+    typeof response === "object" &&
     "accessToken" in response &&
     typeof response.accessToken === "string"
   ) {
