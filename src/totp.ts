@@ -1,5 +1,5 @@
 import {TotpApiClient} from "./api/totp-api-client";
-import {VerifyResponse} from "./api/types/shared";
+import {VerifyResponse} from "./types";
 import {EnrollTotpResponse} from "./api/types/totp";
 import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
