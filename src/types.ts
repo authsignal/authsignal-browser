@@ -78,3 +78,9 @@ export type AuthsignalResponse<T> = {
   error?: string;
   data?: T;
 };
+
+export type VerifyResponse = {
+  isVerified: boolean;
+  token?: string;
+  failureReason?: string;
+};
