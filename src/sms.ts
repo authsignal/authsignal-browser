@@ -1,5 +1,8 @@
 import {SmsApiClient} from "./api/sms-api-client";
+import {ChallengeResponse, EnrollResponse, VerifyResponse} from "./api/types/shared";
+import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
+import {AuthsignalResponse} from "./types";
 
 type SmsOptions = {
   baseUrl: string;
@@ -23,33 +26,37 @@ export class Sms {
     this.api = new SmsApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
-  async enroll({phoneNumber}: EnrollParams) {
+  async enroll({phoneNumber}: EnrollParams): Promise<AuthsignalResponse<EnrollResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    return this.api.enroll({token: this.cache.token, phoneNumber});
+    const response = await this.api.enroll({token: this.cache.token, phoneNumber});
+
+    return handleApiResponse(response);
   }
 
-  async challenge() {
+  async challenge(): Promise<AuthsignalResponse<ChallengeResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    return this.api.challenge({token: this.cache.token});
+    const response = await this.api.challenge({token: this.cache.token});
+
+    return handleApiResponse(response);
   }
 
-  async verify({code}: VerifyParams) {
+  async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    const verifyResponse = await this.api.verify({token: this.cache.token, code});
+    const response = await this.api.verify({token: this.cache.token, code});
 
-    if ("accessToken" in verifyResponse && verifyResponse.accessToken) {
-      this.cache.token = verifyResponse.accessToken;
+    if ("accessToken" in response && response.accessToken) {
+      this.cache.token = response.accessToken;
     }
 
-    return verifyResponse;
+    return handleApiResponse(response);
   }
 }

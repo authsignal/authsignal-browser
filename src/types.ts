@@ -73,3 +73,8 @@ export type AuthsignalWindowMessageData = {
 export type TokenPayload = {
   token?: string;
 };
+
+export type AuthsignalResponse<T> = {
+  error?: string;
+  data?: T;
+};

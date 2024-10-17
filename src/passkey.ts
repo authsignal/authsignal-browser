@@ -2,9 +2,9 @@ import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
-import {logErrorResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
-import {AuthsignalResponse} from "./api/types/shared";
+import {handleErrorResponse} from "./helpers";
+import {AuthsignalResponse} from "./types";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -14,9 +14,9 @@ type PasskeyOptions = {
 };
 
 type SignUpParams = {
-  userName?: string;
-  userDisplayName?: string;
-  token?: string;
+  token: string;
+  username?: string;
+  displayName?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
 };
 
@@ -26,9 +26,9 @@ type SignUpResponse = {
 };
 
 type SignInParams = {
-  token?: string;
   autofill?: boolean;
   action?: string;
+  token?: string;
   onVerificationStarted?: () => unknown;
 };
 
@@ -37,8 +37,8 @@ type SignInResponse = {
   token?: string;
   userId?: string;
   userAuthenticatorId?: string;
-  userName?: string;
-  userDisplayName?: string;
+  username?: string;
+  displayName?: string;
   authenticationResponse?: AuthenticationResponseJSON;
 };
 
@@ -54,8 +54,8 @@ export class Passkey {
   }
 
   async signUp({
-    userName,
-    userDisplayName,
+    username,
+    displayName,
     token,
     authenticatorAttachment = "platform",
   }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
@@ -66,8 +66,8 @@ export class Passkey {
     }
 
     const optionsInput = {
-      username: userName,
-      displayName: userDisplayName,
+      username,
+      displayName,
       token: userToken,
       authenticatorAttachment,
     };
@@ -75,9 +75,7 @@ export class Passkey {
     const optionsResponse = await this.api.registrationOptions(optionsInput);
 
     if ("error" in optionsResponse) {
-      logErrorResponse(optionsResponse);
-
-      return optionsResponse;
+      return handleErrorResponse(optionsResponse);
     }
 
     const registrationResponse = await startRegistration(optionsResponse.options);
@@ -89,9 +87,7 @@ export class Passkey {
     });
 
     if ("error" in addAuthenticatorResponse) {
-      logErrorResponse(addAuthenticatorResponse);
-
-      return addAuthenticatorResponse;
+      return handleErrorResponse(addAuthenticatorResponse);
     }
 
     if (addAuthenticatorResponse.isVerified) {
@@ -106,8 +102,10 @@ export class Passkey {
     }
 
     return {
-      token: addAuthenticatorResponse.accessToken,
-      registrationResponse,
+      data: {
+        token: addAuthenticatorResponse.accessToken,
+        registrationResponse,
+      },
     };
   }
 
@@ -123,9 +121,7 @@ export class Passkey {
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
-      logErrorResponse(challengeResponse);
-
-      return challengeResponse;
+      return handleErrorResponse(challengeResponse);
     }
 
     const optionsResponse = await this.api.authenticationOptions({
@@ -134,9 +130,7 @@ export class Passkey {
     });
 
     if ("error" in optionsResponse) {
-      logErrorResponse(optionsResponse);
-
-      return optionsResponse;
+      return handleErrorResponse(optionsResponse);
     }
 
     const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
@@ -153,9 +147,7 @@ export class Passkey {
     });
 
     if ("error" in verifyResponse) {
-      logErrorResponse(verifyResponse);
-
-      return verifyResponse;
+      return handleErrorResponse(verifyResponse);
     }
 
     if (verifyResponse.isVerified) {
@@ -166,23 +158,18 @@ export class Passkey {
       this.cache.token = verifyResponse.accessToken;
     }
 
-    const {
-      accessToken: token,
-      userId,
-      userAuthenticatorId,
-      username: userName,
-      userDisplayName,
-      isVerified,
-    } = verifyResponse;
+    const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
 
     return {
-      isVerified,
-      token,
-      userId,
-      userAuthenticatorId,
-      userName,
-      userDisplayName,
-      authenticationResponse,
+      data: {
+        isVerified,
+        token,
+        userId,
+        userAuthenticatorId,
+        username,
+        displayName: userDisplayName,
+        authenticationResponse,
+      },
     };
   }
 

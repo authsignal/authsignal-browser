@@ -1,4 +1,4 @@
-import {AuthsignalResponse} from "./types/shared";
+import {ErrorResponse} from "./types/shared";
 
 type BuildHeadersParams = {
   token?: string;
@@ -15,7 +15,7 @@ export function buildHeaders({token, tenantId}: BuildHeadersParams) {
 }
 
 type HandleTokenExpiredParams<T> = {
-  response: AuthsignalResponse<T>;
+  response: T | ErrorResponse;
   onTokenExpired?: () => void;
 };
 

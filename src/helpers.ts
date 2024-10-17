@@ -40,6 +40,42 @@ export function getCookie(name: string) {
   );
 }
 
-export function logErrorResponse(errorResponse: ErrorResponse) {
-  console.error(errorResponse.errorDescription ?? errorResponse.error);
+export function handleErrorResponse(errorResponse: ErrorResponse) {
+  const error = errorResponse.errorDescription ?? errorResponse.error;
+
+  console.error(error);
+
+  return {
+    error,
+  };
+}
+
+export function handleApiResponse<T>(response: ErrorResponse | T) {
+  if (typeof response === "object" && response && "error" in response) {
+    const error = response.errorDescription ?? response.error;
+
+    console.error(error);
+
+    return {
+      error,
+    };
+  } else if (
+    typeof response === "object" &&
+    response &&
+    "accessToken" in response &&
+    typeof response.accessToken === "string"
+  ) {
+    const {accessToken, ...data} = response;
+
+    return {
+      data: {
+        ...data,
+        token: accessToken,
+      } as T,
+    };
+  } else {
+    return {
+      data: response,
+    };
+  }
 }
