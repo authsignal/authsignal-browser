@@ -25,5 +25,3 @@ export type ErrorResponse = {
   errorCode?: "expired_token" | (string & {});
   errorDescription?: string;
 };
-
-export type AuthsignalResponse<T> = T | ErrorResponse;

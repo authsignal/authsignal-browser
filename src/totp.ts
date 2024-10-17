@@ -1,5 +1,9 @@
 import {TotpApiClient} from "./api/totp-api-client";
+import {VerifyResponse} from "./api/types/shared";
+import {EnrollTotpResponse} from "./api/types/totp";
+import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
+import {AuthsignalResponse} from "./types";
 
 type TotpOptions = {
   baseUrl: string;
@@ -19,25 +23,27 @@ export class Totp {
     this.api = new TotpApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
-  async enroll() {
+  async enroll(): Promise<AuthsignalResponse<EnrollTotpResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    return this.api.enroll({token: this.cache.token});
+    const response = await this.api.enroll({token: this.cache.token});
+
+    return handleApiResponse(response);
   }
 
-  async verify({code}: VerifyParams) {
+  async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    const verifyResponse = await this.api.verify({token: this.cache.token, code});
+    const response = await this.api.verify({token: this.cache.token, code});
 
-    if ("accessToken" in verifyResponse && verifyResponse.accessToken) {
-      this.cache.token = verifyResponse.accessToken;
+    if ("accessToken" in response && response.accessToken) {
+      this.cache.token = response.accessToken;
     }
 
-    return verifyResponse;
+    return handleApiResponse(response);
   }
 }
