@@ -79,6 +79,22 @@ export type AuthsignalResponse<T> = {
   data?: T;
 };
 
+export type EnrollResponse = {
+  userAuthenticatorId: string;
+  userId: string;
+};
+
+export type EnrollTotpResponse = {
+  userAuthenticatorId: string;
+  userId: string;
+  uri: string;
+  secret: string;
+};
+
+export type ChallengeResponse = {
+  challengeId: string;
+};
+
 export type VerifyResponse = {
   isVerified: boolean;
   token?: string;

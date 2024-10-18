@@ -1,9 +1,7 @@
 import {TotpApiClient} from "./api/totp-api-client";
-import {VerifyResponse} from "./types";
-import {EnrollTotpResponse} from "./api/types/totp";
 import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
-import {AuthsignalResponse} from "./types";
+import {AuthsignalResponse, EnrollTotpResponse, VerifyResponse} from "./types";
 
 type TotpOptions = {
   baseUrl: string;
