@@ -4,6 +4,7 @@ import {
   AddAuthenticatorResponse,
   AuthenticationOptsRequest,
   AuthenticationOptsResponse,
+  ChallengeResponse,
   ErrorResponse,
   PasskeyAuthenticatorResponse,
   RegistrationOptsRequest,
@@ -11,7 +12,7 @@ import {
   VerifyRequest,
   VerifyResponse,
 } from "./types/passkey";
-import {ApiClientOptions, ChallengeResponse} from "./types/shared";
+import {ApiClientOptions} from "./types/shared";
 
 export class PasskeyApiClient {
   tenantId: string;
