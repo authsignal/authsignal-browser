@@ -85,11 +85,9 @@ export type EnrollResponse = {
 };
 
 export type EnrollTotpResponse = {
-  userAuthenticatorId: string;
-  userId: string;
   uri: string;
   secret: string;
-};
+} & EnrollResponse;
 
 export type ChallengeResponse = {
   challengeId: string;
