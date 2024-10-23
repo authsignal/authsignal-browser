@@ -98,3 +98,8 @@ export type VerifyResponse = {
   token?: string;
   failureReason?: string;
 };
+
+export type CheckVerificationStatusResponse = {
+  isVerified: boolean;
+  token?: string;
+};
