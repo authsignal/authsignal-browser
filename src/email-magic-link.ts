@@ -1,8 +1,7 @@
 import {EmailMagicLinkApiClient} from "./api/email-magic-link-api-client";
-import {CheckVerificationStatusResponse} from "./api/types/email-magic-link";
 import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
-import {AuthsignalResponse, ChallengeResponse, EnrollResponse} from "./types";
+import {AuthsignalResponse, ChallengeResponse, EnrollResponse, CheckVerificationStatusResponse} from "./types";
 
 type EmailMagicLinkOptions = {
   baseUrl: string;
