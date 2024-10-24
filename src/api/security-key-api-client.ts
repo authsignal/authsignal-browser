@@ -38,7 +38,7 @@ export class SecurityKeyApiClient {
   }: {
     token?: string;
   }): Promise<PublicKeyCredentialRequestOptionsJSON | ErrorResponse> {
-    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
+    const response = await fetch(`${this.baseUrl}/client/user-authenticators/security-key/authentication-options`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify({}),
