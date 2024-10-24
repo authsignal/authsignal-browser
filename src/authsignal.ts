@@ -17,6 +17,7 @@ import {TokenCache} from "./token-cache";
 import {Email} from "./email";
 import {Sms} from "./sms";
 import {EmailMagicLink} from "./email-magic-link";
+import {SecurityKey} from "./security-key";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 const DEFAULT_PROFILING_COOKIE_NAME = "__as_pid";
@@ -36,6 +37,7 @@ export class Authsignal {
   email: Email;
   emailML: EmailMagicLink;
   sms: Sms;
+  securityKey: SecurityKey;
 
   constructor({
     cookieDomain,
@@ -72,6 +74,7 @@ export class Authsignal {
     this.email = new Email({tenantId, baseUrl, onTokenExpired});
     this.emailML = new EmailMagicLink({tenantId, baseUrl, onTokenExpired});
     this.sms = new Sms({tenantId, baseUrl, onTokenExpired});
+    this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired});
   }
 
   setToken(token: string) {
