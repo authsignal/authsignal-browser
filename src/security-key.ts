@@ -9,7 +9,6 @@ import {SecurityKeyApiClient} from "./api/security-key-api-client";
 type SecurityKeyOptions = {
   baseUrl: string;
   tenantId: string;
-  anonymousId: string;
   onTokenExpired?: () => void;
 };
 
@@ -26,12 +25,10 @@ type VerifyResponse = {
 
 export class SecurityKey {
   public api: SecurityKeyApiClient;
-  private anonymousId: string;
   private cache = TokenCache.shared;
 
-  constructor({baseUrl, tenantId, anonymousId, onTokenExpired}: SecurityKeyOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired}: SecurityKeyOptions) {
     this.api = new SecurityKeyApiClient({baseUrl, tenantId, onTokenExpired});
-    this.anonymousId = anonymousId;
   }
 
   async enroll(): Promise<AuthsignalResponse<EnrollResponse>> {
