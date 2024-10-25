@@ -14,7 +14,7 @@ type PasskeyOptions = {
 };
 
 type SignUpParams = {
-  token: string;
+  token?: string;
   username?: string;
   displayName?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
