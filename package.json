@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "1.2.1",
+  "version": "1.2.0",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -28,8 +28,8 @@
   },
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^3.3.6",
-    "@simplewebauthn/browser": "^10.0.0",
-    "@simplewebauthn/types": "^10.0.0",
+    "@simplewebauthn/browser": "^11.0.0",
+    "@simplewebauthn/types": "^11.0.0",
     "a11y-dialog": "8.0.4",
     "uuid": "^9.0.0"
   },

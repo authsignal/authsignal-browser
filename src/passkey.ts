@@ -18,6 +18,7 @@ type SignUpParams = {
   username?: string;
   displayName?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
+  useAutoRegister?: boolean;
 };
 
 type SignUpResponse = {
@@ -58,6 +59,7 @@ export class Passkey {
     displayName,
     token,
     authenticatorAttachment = "platform",
+    useAutoRegister = false,
   }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
     const userToken = token ?? this.cache.token;
 
@@ -78,7 +80,7 @@ export class Passkey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const registrationResponse = await startRegistration(optionsResponse.options);
+    const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
 
     const addAuthenticatorResponse = await this.api.addAuthenticator({
       challengeId: optionsResponse.challengeId,
@@ -133,7 +135,10 @@ export class Passkey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const authenticationResponse = await startAuthentication(optionsResponse.options, params?.autofill);
+    const authenticationResponse = await startAuthentication({
+      optionsJSON: optionsResponse.options,
+      useBrowserAutofill: params?.autofill,
+    });
 
     if (params?.onVerificationStarted) {
       params.onVerificationStarted();
