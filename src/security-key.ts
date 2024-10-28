@@ -46,7 +46,7 @@ export class SecurityKey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const registrationResponse = await startRegistration(optionsResponse);
+    const registrationResponse = await startRegistration({optionsJSON: optionsResponse});
 
     const addAuthenticatorResponse = await this.api.addAuthenticator({
       registrationCredential: registrationResponse,
@@ -82,7 +82,7 @@ export class SecurityKey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const authenticationResponse = await startAuthentication(optionsResponse);
+    const authenticationResponse = await startAuthentication({optionsJSON: optionsResponse});
 
     const verifyResponse = await this.api.verify({
       authenticationCredential: authenticationResponse,
