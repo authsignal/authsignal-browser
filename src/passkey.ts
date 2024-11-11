@@ -1,9 +1,9 @@
-import {startAuthentication, startRegistration, WebAuthnError} from "@simplewebauthn/browser";
+import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 import {TokenCache} from "./token-cache";
-import {handleErrorResponse} from "./helpers";
+import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";
 
 type PasskeyOptions = {
@@ -82,35 +82,43 @@ export class Passkey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
+    try {
+      const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
 
-    const addAuthenticatorResponse = await this.api.addAuthenticator({
-      challengeId: optionsResponse.challengeId,
-      registrationCredential: registrationResponse,
-      token: userToken,
-    });
-
-    if ("error" in addAuthenticatorResponse) {
-      return handleErrorResponse(addAuthenticatorResponse);
-    }
-
-    if (addAuthenticatorResponse.isVerified) {
-      this.storeCredentialAgainstDevice({
-        ...registrationResponse,
-        userId: addAuthenticatorResponse.userId,
+      const addAuthenticatorResponse = await this.api.addAuthenticator({
+        challengeId: optionsResponse.challengeId,
+        registrationCredential: registrationResponse,
+        token: userToken,
       });
-    }
 
-    if (addAuthenticatorResponse.accessToken) {
-      this.cache.token = addAuthenticatorResponse.accessToken;
-    }
+      if ("error" in addAuthenticatorResponse) {
+        return handleErrorResponse(addAuthenticatorResponse);
+      }
 
-    return {
-      data: {
-        token: addAuthenticatorResponse.accessToken,
-        registrationResponse,
-      },
-    };
+      if (addAuthenticatorResponse.isVerified) {
+        this.storeCredentialAgainstDevice({
+          ...registrationResponse,
+          userId: addAuthenticatorResponse.userId,
+        });
+      }
+
+      if (addAuthenticatorResponse.accessToken) {
+        this.cache.token = addAuthenticatorResponse.accessToken;
+      }
+
+      return {
+        data: {
+          token: addAuthenticatorResponse.accessToken,
+          registrationResponse,
+        },
+      };
+    } catch (e) {
+      autofillRequestPending = false;
+
+      handleWebAuthnError(e);
+
+      throw e;
+    }
   }
 
   async signIn(params?: SignInParams): Promise<AuthsignalResponse<SignInResponse>> {
@@ -198,13 +206,7 @@ export class Passkey {
     } catch (e) {
       autofillRequestPending = false;
 
-      if (e instanceof WebAuthnError && e.code === "ERROR_INVALID_RP_ID") {
-        const rpId = e.message?.match(/"([^"]*)"/)![1] || "";
-
-        console.error(
-          `[Authsignal] The Relying Party ID "${rpId} is invalid for this domain.\n To learn more, visit https://docs.authsignal.com/scenarios/passkeys-prebuilt-ui#defining-the-relying-party`
-        );
-      }
+      handleWebAuthnError(e);
 
       throw e;
     }
