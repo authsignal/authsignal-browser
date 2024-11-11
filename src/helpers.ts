@@ -1,3 +1,4 @@
+import {WebAuthnError} from "@simplewebauthn/browser";
 import {ErrorResponse} from "./api/types/shared";
 
 type CookieOptions = {
@@ -77,5 +78,15 @@ export function handleApiResponse<T>(response: ErrorResponse | T) {
     return {
       data: response,
     };
+  }
+}
+
+export function handleWebAuthnError(error: unknown) {
+  if (error instanceof WebAuthnError && error.code === "ERROR_INVALID_RP_ID") {
+    const rpId = error.message?.match(/"([^"]*)"/)?.[1] || "";
+
+    console.error(
+      `[Authsignal] The Relying Party ID "${rpId}" is invalid for this domain.\n To learn more, visit https://docs.authsignal.com/scenarios/passkeys-prebuilt-ui#defining-the-relying-party`
+    );
   }
 }

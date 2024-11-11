@@ -3,7 +3,7 @@ import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 import {TokenCache} from "./token-cache";
-import {handleErrorResponse} from "./helpers";
+import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";
 
 type PasskeyOptions = {
@@ -43,6 +43,8 @@ type SignInResponse = {
   authenticationResponse?: AuthenticationResponseJSON;
 };
 
+let autofillRequestPending = false;
+
 export class Passkey {
   public api: PasskeyApiClient;
   private passkeyLocalStorageKey = "as_user_passkey_map";
@@ -80,35 +82,43 @@ export class Passkey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
+    try {
+      const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
 
-    const addAuthenticatorResponse = await this.api.addAuthenticator({
-      challengeId: optionsResponse.challengeId,
-      registrationCredential: registrationResponse,
-      token: userToken,
-    });
-
-    if ("error" in addAuthenticatorResponse) {
-      return handleErrorResponse(addAuthenticatorResponse);
-    }
-
-    if (addAuthenticatorResponse.isVerified) {
-      this.storeCredentialAgainstDevice({
-        ...registrationResponse,
-        userId: addAuthenticatorResponse.userId,
+      const addAuthenticatorResponse = await this.api.addAuthenticator({
+        challengeId: optionsResponse.challengeId,
+        registrationCredential: registrationResponse,
+        token: userToken,
       });
-    }
 
-    if (addAuthenticatorResponse.accessToken) {
-      this.cache.token = addAuthenticatorResponse.accessToken;
-    }
+      if ("error" in addAuthenticatorResponse) {
+        return handleErrorResponse(addAuthenticatorResponse);
+      }
 
-    return {
-      data: {
-        token: addAuthenticatorResponse.accessToken,
-        registrationResponse,
-      },
-    };
+      if (addAuthenticatorResponse.isVerified) {
+        this.storeCredentialAgainstDevice({
+          ...registrationResponse,
+          userId: addAuthenticatorResponse.userId,
+        });
+      }
+
+      if (addAuthenticatorResponse.accessToken) {
+        this.cache.token = addAuthenticatorResponse.accessToken;
+      }
+
+      return {
+        data: {
+          token: addAuthenticatorResponse.accessToken,
+          registrationResponse,
+        },
+      };
+    } catch (e) {
+      autofillRequestPending = false;
+
+      handleWebAuthnError(e);
+
+      throw e;
+    }
   }
 
   async signIn(params?: SignInParams): Promise<AuthsignalResponse<SignInResponse>> {
@@ -120,9 +130,19 @@ export class Passkey {
       throw new Error("action is not supported when providing a token");
     }
 
+    if (params?.autofill) {
+      if (autofillRequestPending) {
+        return {};
+      } else {
+        autofillRequestPending = true;
+      }
+    }
+
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
+      autofillRequestPending = false;
+
       return handleErrorResponse(challengeResponse);
     }
 
@@ -132,50 +152,64 @@ export class Passkey {
     });
 
     if ("error" in optionsResponse) {
+      autofillRequestPending = false;
+
       return handleErrorResponse(optionsResponse);
     }
 
-    const authenticationResponse = await startAuthentication({
-      optionsJSON: optionsResponse.options,
-      useBrowserAutofill: params?.autofill,
-    });
+    try {
+      const authenticationResponse = await startAuthentication({
+        optionsJSON: optionsResponse.options,
+        useBrowserAutofill: params?.autofill,
+      });
 
-    if (params?.onVerificationStarted) {
-      params.onVerificationStarted();
+      if (params?.onVerificationStarted) {
+        params.onVerificationStarted();
+      }
+
+      const verifyResponse = await this.api.verify({
+        challengeId: optionsResponse.challengeId,
+        authenticationCredential: authenticationResponse,
+        token: params?.token,
+        deviceId: this.anonymousId,
+      });
+
+      if ("error" in verifyResponse) {
+        autofillRequestPending = false;
+
+        return handleErrorResponse(verifyResponse);
+      }
+
+      if (verifyResponse.isVerified) {
+        this.storeCredentialAgainstDevice({...authenticationResponse, userId: verifyResponse.userId});
+      }
+
+      if (verifyResponse.accessToken) {
+        this.cache.token = verifyResponse.accessToken;
+      }
+
+      const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
+
+      autofillRequestPending = false;
+
+      return {
+        data: {
+          isVerified,
+          token,
+          userId,
+          userAuthenticatorId,
+          username,
+          displayName: userDisplayName,
+          authenticationResponse,
+        },
+      };
+    } catch (e) {
+      autofillRequestPending = false;
+
+      handleWebAuthnError(e);
+
+      throw e;
     }
-
-    const verifyResponse = await this.api.verify({
-      challengeId: optionsResponse.challengeId,
-      authenticationCredential: authenticationResponse,
-      token: params?.token,
-      deviceId: this.anonymousId,
-    });
-
-    if ("error" in verifyResponse) {
-      return handleErrorResponse(verifyResponse);
-    }
-
-    if (verifyResponse.isVerified) {
-      this.storeCredentialAgainstDevice({...authenticationResponse, userId: verifyResponse.userId});
-    }
-
-    if (verifyResponse.accessToken) {
-      this.cache.token = verifyResponse.accessToken;
-    }
-
-    const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
-
-    return {
-      data: {
-        isVerified,
-        token,
-        userId,
-        userAuthenticatorId,
-        username,
-        displayName: userDisplayName,
-        authenticationResponse,
-      },
-    };
   }
 
   async isAvailableOnDevice({userId}: {userId: string}) {

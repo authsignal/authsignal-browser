@@ -1,3 +1,5 @@
+import {WebAuthnError} from "@simplewebauthn/browser";
+
 type BaseLaunchOptions = {
   /**
    *  How the Authsignal Prebuilt MFA page should launch.
@@ -103,3 +105,5 @@ export type CheckVerificationStatusResponse = {
   isVerified: boolean;
   token?: string;
 };
+
+export {WebAuthnError};
