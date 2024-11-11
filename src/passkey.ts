@@ -43,6 +43,8 @@ type SignInResponse = {
   authenticationResponse?: AuthenticationResponseJSON;
 };
 
+let autofillRequestPending = false;
+
 export class Passkey {
   public api: PasskeyApiClient;
   private passkeyLocalStorageKey = "as_user_passkey_map";
@@ -120,9 +122,19 @@ export class Passkey {
       throw new Error("action is not supported when providing a token");
     }
 
+    if (params?.autofill) {
+      if (autofillRequestPending) {
+        return {};
+      } else {
+        autofillRequestPending = true;
+      }
+    }
+
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
+      autofillRequestPending = false;
+
       return handleErrorResponse(challengeResponse);
     }
 
@@ -132,6 +144,8 @@ export class Passkey {
     });
 
     if ("error" in optionsResponse) {
+      autofillRequestPending = false;
+
       return handleErrorResponse(optionsResponse);
     }
 
@@ -152,6 +166,8 @@ export class Passkey {
     });
 
     if ("error" in verifyResponse) {
+      autofillRequestPending = false;
+
       return handleErrorResponse(verifyResponse);
     }
 
@@ -164,6 +180,8 @@ export class Passkey {
     }
 
     const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
+
+    autofillRequestPending = false;
 
     return {
       data: {
