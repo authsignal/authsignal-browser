@@ -1,4 +1,4 @@
-import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
+import {startAuthentication, startRegistration, WebAuthnError} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
@@ -149,51 +149,65 @@ export class Passkey {
       return handleErrorResponse(optionsResponse);
     }
 
-    const authenticationResponse = await startAuthentication({
-      optionsJSON: optionsResponse.options,
-      useBrowserAutofill: params?.autofill,
-    });
+    try {
+      const authenticationResponse = await startAuthentication({
+        optionsJSON: optionsResponse.options,
+        useBrowserAutofill: params?.autofill,
+      });
 
-    if (params?.onVerificationStarted) {
-      params.onVerificationStarted();
-    }
+      if (params?.onVerificationStarted) {
+        params.onVerificationStarted();
+      }
 
-    const verifyResponse = await this.api.verify({
-      challengeId: optionsResponse.challengeId,
-      authenticationCredential: authenticationResponse,
-      token: params?.token,
-      deviceId: this.anonymousId,
-    });
+      const verifyResponse = await this.api.verify({
+        challengeId: optionsResponse.challengeId,
+        authenticationCredential: authenticationResponse,
+        token: params?.token,
+        deviceId: this.anonymousId,
+      });
 
-    if ("error" in verifyResponse) {
+      if ("error" in verifyResponse) {
+        autofillRequestPending = false;
+
+        return handleErrorResponse(verifyResponse);
+      }
+
+      if (verifyResponse.isVerified) {
+        this.storeCredentialAgainstDevice({...authenticationResponse, userId: verifyResponse.userId});
+      }
+
+      if (verifyResponse.accessToken) {
+        this.cache.token = verifyResponse.accessToken;
+      }
+
+      const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
+
       autofillRequestPending = false;
 
-      return handleErrorResponse(verifyResponse);
+      return {
+        data: {
+          isVerified,
+          token,
+          userId,
+          userAuthenticatorId,
+          username,
+          displayName: userDisplayName,
+          authenticationResponse,
+        },
+      };
+    } catch (e) {
+      autofillRequestPending = false;
+
+      if (e instanceof WebAuthnError && e.code === "ERROR_INVALID_RP_ID") {
+        const rpId = e.message?.match(/"([^"]*)"/)![1] || "";
+
+        console.error(
+          `[Authsignal] The Relying Party ID "${rpId} is invalid for this domain.\n To learn more, visit https://docs.authsignal.com/scenarios/passkeys-prebuilt-ui#defining-the-relying-party`
+        );
+      }
+
+      throw e;
     }
-
-    if (verifyResponse.isVerified) {
-      this.storeCredentialAgainstDevice({...authenticationResponse, userId: verifyResponse.userId});
-    }
-
-    if (verifyResponse.accessToken) {
-      this.cache.token = verifyResponse.accessToken;
-    }
-
-    const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
-
-    autofillRequestPending = false;
-
-    return {
-      data: {
-        isVerified,
-        token,
-        userId,
-        userAuthenticatorId,
-        username,
-        displayName: userDisplayName,
-        authenticationResponse,
-      },
-    };
   }
 
   async isAvailableOnDevice({userId}: {userId: string}) {
