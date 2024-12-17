@@ -30,6 +30,7 @@ type SignInParams = {
   autofill?: boolean;
   action?: string;
   token?: string;
+  challengeId?: string;
   onVerificationStarted?: () => unknown;
 };
 
@@ -130,6 +131,14 @@ export class Passkey {
       throw new Error("action is not supported when providing a token");
     }
 
+    if (params?.action && params?.challengeId) {
+      throw new Error("action is not supported when providing a challengeId");
+    }
+
+    if (params?.challengeId && params.token) {
+      throw new Error("challengeId is not supported when providing a token");
+    }
+
     if (params?.autofill) {
       if (autofillRequestPending) {
         return {};
@@ -148,7 +157,7 @@ export class Passkey {
 
     const optionsResponse = await this.api.authenticationOptions({
       token: params?.token,
-      challengeId: challengeResponse?.challengeId,
+      challengeId: challengeResponse?.challengeId ?? params?.challengeId,
     });
 
     if ("error" in optionsResponse) {
