@@ -5,7 +5,7 @@ import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttac
 import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";
-
+import {Authenticator} from "./api/types/shared";
 type PasskeyOptions = {
   baseUrl: string;
   tenantId: string;
@@ -23,6 +23,7 @@ type SignUpParams = {
 
 type SignUpResponse = {
   token?: string;
+  userAuthenticator?: Authenticator;
   registrationResponse?: RegistrationResponseJSON;
 };
 
@@ -109,6 +110,7 @@ export class Passkey {
       return {
         data: {
           token: addAuthenticatorResponse.accessToken,
+          userAuthenticator: addAuthenticatorResponse.userAuthenticator,
           registrationResponse,
         },
       };
