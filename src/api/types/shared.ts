@@ -6,10 +6,23 @@ export type ApiClientOptions = {
   onTokenExpired?: () => void;
 };
 
+export type EnrollResponse = {
+  userAuthenticatorId: string;
+  userId: string;
+};
+
+export type ChallengeResponse = {
+  challengeId: string;
+};
+
 export type VerifyResponse = {
   isVerified: boolean;
   accessToken?: string;
   failureReason?: string;
+  /**
+   * Only present when successfully verifying an authenticator during enrollment.
+   */
+  userAuthenticator?: Authenticator;
 };
 
 export type ErrorResponse = {

@@ -1,7 +1,8 @@
 import {SmsApiClient} from "./api/sms-api-client";
+import {EnrollResponse, ChallengeResponse} from "./api/types/shared";
 import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
-import {AuthsignalResponse, ChallengeResponse, EnrollResponse, VerifyResponse} from "./types";
+import {AuthsignalResponse, VerifyResponse} from "./types";
 
 type SmsOptions = {
   baseUrl: string;

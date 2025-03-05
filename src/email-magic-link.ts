@@ -1,7 +1,8 @@
+import {EnrollResponse, ChallengeResponse} from "./api/types/shared";
 import {EmailMagicLinkApiClient} from "./api/email-magic-link-api-client";
 import {handleApiResponse} from "./helpers";
 import {TokenCache} from "./token-cache";
-import {AuthsignalResponse, ChallengeResponse, EnrollResponse, CheckVerificationStatusResponse} from "./types";
+import {AuthsignalResponse, VerifyResponse} from "./types";
 
 type EmailMagicLinkOptions = {
   baseUrl: string;
@@ -41,7 +42,7 @@ export class EmailMagicLink {
     return handleApiResponse(response);
   }
 
-  async checkVerificationStatus(): Promise<AuthsignalResponse<CheckVerificationStatusResponse>> {
+  async checkVerificationStatus(): Promise<AuthsignalResponse<VerifyResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }

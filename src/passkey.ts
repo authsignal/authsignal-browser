@@ -1,6 +1,6 @@
 import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
 
-import {PasskeyApiClient} from "./api";
+import {PasskeyApiClient} from "./api/passkey-api-client";
 import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
