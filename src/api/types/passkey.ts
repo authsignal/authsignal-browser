@@ -4,6 +4,7 @@ import {
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/types";
+import {Authenticator} from "./shared";
 
 export type RegistrationOptsRequest = {
   username?: string;
@@ -34,6 +35,7 @@ export type AddAuthenticatorResponse = {
   accessToken?: string;
   userAuthenticatorId?: string;
   userId?: string;
+  userAuthenticator?: Authenticator;
 };
 
 export type VerifyRequest = {

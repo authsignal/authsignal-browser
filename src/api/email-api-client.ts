@@ -1,6 +1,5 @@
-import {ChallengeResponse, EnrollResponse} from "../types";
 import {buildHeaders, handleTokenExpired} from "./helpers";
-import {ApiClientOptions, ErrorResponse, VerifyResponse} from "./types/shared";
+import {ApiClientOptions, ChallengeResponse, EnrollResponse, ErrorResponse, VerifyResponse} from "./types/shared";
 
 export class EmailApiClient {
   tenantId: string;

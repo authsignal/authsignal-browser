@@ -1,5 +1,5 @@
 import {WebAuthnError} from "@simplewebauthn/browser";
-
+import {VerifyResponse as ApiVerifyResponse} from "./api/types/shared";
 type BaseLaunchOptions = {
   /**
    *  How the Authsignal Prebuilt MFA page should launch.
@@ -81,28 +81,7 @@ export type AuthsignalResponse<T> = {
   data?: T;
 };
 
-export type EnrollResponse = {
-  userAuthenticatorId: string;
-  userId: string;
-};
-
-export type EnrollTotpResponse = {
-  uri: string;
-  secret: string;
-} & EnrollResponse;
-
-export type ChallengeResponse = {
-  challengeId: string;
-};
-
-export type VerifyResponse = {
-  isVerified: boolean;
-  token?: string;
-  failureReason?: string;
-};
-
-export type CheckVerificationStatusResponse = {
-  isVerified: boolean;
+export type VerifyResponse = Omit<ApiVerifyResponse, "accessToken"> & {
   token?: string;
 };
 

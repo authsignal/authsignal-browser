@@ -1,6 +1,6 @@
 import {buildHeaders, handleTokenExpired} from "./helpers";
 import {ApiClientOptions, ErrorResponse, VerifyResponse} from "./types/shared";
-import {EnrollTotpResponse} from "../types";
+import {EnrollTotpResponse} from "./types/totp";
 
 export class TotpApiClient {
   tenantId: string;

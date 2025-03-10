@@ -1,7 +1,5 @@
-import {ChallengeResponse, EnrollResponse} from "../types";
 import {buildHeaders, handleTokenExpired} from "./helpers";
-import {CheckVerificationStatusResponse} from "./types/email-magic-link";
-import {ApiClientOptions, ErrorResponse} from "./types/shared";
+import {ApiClientOptions, ChallengeResponse, EnrollResponse, ErrorResponse, VerifyResponse} from "./types/shared";
 
 export class EmailMagicLinkApiClient {
   tenantId: string;
@@ -43,8 +41,8 @@ export class EmailMagicLinkApiClient {
     return responseJson;
   }
 
-  async checkVerificationStatus({token}: {token: string}): Promise<CheckVerificationStatusResponse | ErrorResponse> {
-    const pollVerificationStatus = async (): Promise<CheckVerificationStatusResponse | ErrorResponse> => {
+  async checkVerificationStatus({token}: {token: string}): Promise<VerifyResponse | ErrorResponse> {
+    const pollVerificationStatus = async (): Promise<VerifyResponse | ErrorResponse> => {
       const response = await fetch(`${this.baseUrl}/client/verify/email-magic-link/finalize`, {
         method: "POST",
         headers: buildHeaders({token, tenantId: this.tenantId}),
