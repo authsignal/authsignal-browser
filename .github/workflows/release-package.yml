@@ -2,7 +2,7 @@ name: Release the Authsignal browser package
 
 on:
   release:
-    types: [created]
+    types: [published]
 
 jobs:
   build:
