@@ -75,6 +75,12 @@ export class Passkey {
       return this.cache.handleTokenNotSetError();
     }
 
+    if (useAutoRegister) {
+      if (!this.doesBrowserSupportConditionalCreate()) {
+        throw new Error("CONDITIONAL_CREATE_NOT_SUPPORTED");
+      }
+    }
+
     const optionsInput = {
       username,
       displayName,
@@ -269,5 +275,18 @@ export class Passkey {
     }
 
     localStorage.setItem(this.passkeyLocalStorageKey, JSON.stringify(credentialsMap));
+  }
+
+  private doesBrowserSupportConditionalCreate() {
+    // @ts-expect-error types are not up to date
+    if (window.PublicKeyCredential && PublicKeyCredential.getClientCapabilities) {
+      // @ts-expect-error types are not up to date
+      const capabilities = await PublicKeyCredential.getClientCapabilities();
+      if (capabilities.conditionalCreate) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
