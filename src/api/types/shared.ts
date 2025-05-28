@@ -1,4 +1,4 @@
-import {CredentialDeviceType} from "@simplewebauthn/types";
+import {CredentialDeviceType} from "@simplewebauthn/browser";
 
 export type ApiClientOptions = {
   baseUrl: string;
