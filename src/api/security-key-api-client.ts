@@ -3,7 +3,7 @@ import {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
-} from "@simplewebauthn/types";
+} from "@simplewebauthn/browser";
 import {buildHeaders, handleTokenExpired} from "./helpers";
 import {AddAuthenticatorResponse, ErrorResponse, VerifyResponse} from "./types/passkey";
 import {ApiClientOptions} from "./types/shared";

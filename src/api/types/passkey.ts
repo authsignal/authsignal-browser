@@ -3,7 +3,7 @@ import {
   AuthenticatorAttachment,
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationResponseJSON,
-} from "@simplewebauthn/types";
+} from "@simplewebauthn/browser";
 import {Authenticator} from "./shared";
 
 export type RegistrationOptsRequest = {
@@ -28,6 +28,7 @@ export type AuthenticationOptsResponse = {
 export type AddAuthenticatorRequest = {
   challengeId: string;
   registrationCredential: RegistrationResponseJSON;
+  conditionalCreate?: boolean;
 };
 
 export type AddAuthenticatorResponse = {

@@ -1,6 +1,10 @@
-import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
+import {
+  startAuthentication,
+  startRegistration,
+  AuthenticationResponseJSON,
+  RegistrationResponseJSON,
+} from "@simplewebauthn/browser";
 
-import {AuthenticationResponseJSON, RegistrationResponseJSON} from "@simplewebauthn/types";
 import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";

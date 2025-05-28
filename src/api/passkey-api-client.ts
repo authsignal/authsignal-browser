@@ -70,10 +70,12 @@ export class PasskeyApiClient {
     token,
     challengeId,
     registrationCredential,
+    conditionalCreate,
   }: {token: string} & AddAuthenticatorRequest): Promise<AddAuthenticatorResponse | ErrorResponse> {
     const body: AddAuthenticatorRequest = {
       challengeId,
       registrationCredential,
+      conditionalCreate,
     };
 
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {

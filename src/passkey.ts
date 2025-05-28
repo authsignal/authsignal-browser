@@ -1,7 +1,12 @@
-import {startAuthentication, startRegistration} from "@simplewebauthn/browser";
+import {
+  startAuthentication,
+  startRegistration,
+  AuthenticationResponseJSON,
+  RegistrationResponseJSON,
+  AuthenticatorAttachment,
+} from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api/passkey-api-client";
-import {AuthenticationResponseJSON, RegistrationResponseJSON, AuthenticatorAttachment} from "@simplewebauthn/types";
 import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";
@@ -90,6 +95,7 @@ export class Passkey {
         challengeId: optionsResponse.challengeId,
         registrationCredential: registrationResponse,
         token: userToken,
+        conditionalCreate: useAutoRegister,
       });
 
       if ("error" in addAuthenticatorResponse) {
