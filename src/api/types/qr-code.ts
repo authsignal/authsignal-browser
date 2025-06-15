@@ -7,5 +7,5 @@ export type QrCodeVerifyResponse = {
   isClaimed: boolean;
   isVerified: boolean;
   isConsumed: boolean;
-  accessToken?: string;
+  token?: string;
 };

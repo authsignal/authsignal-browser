@@ -77,7 +77,7 @@ export class Authsignal {
     this.emailML = new EmailMagicLink({tenantId, baseUrl, onTokenExpired});
     this.sms = new Sms({tenantId, baseUrl, onTokenExpired});
     this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired});
-    this.qrCode = new QrCode({tenantId, baseUrl, onTokenExpired});
+    this.qrCode = new QrCode({tenantId, baseUrl});
   }
 
   setToken(token: string) {
