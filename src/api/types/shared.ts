@@ -45,6 +45,7 @@ export enum VerificationMethod {
   IPROOV = "IPROOV",
   PALM_BIOMETRICS_RR = "PALM_BIOMETRICS_RR",
   IDVERSE = "IDVERSE",
+  DEVICE = "DEVICE",
 }
 
 enum SmsChannel {
