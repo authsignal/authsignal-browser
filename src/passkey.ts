@@ -76,7 +76,7 @@ export class Passkey {
     }
 
     if (useAutoRegister) {
-      if (!this.doesBrowserSupportConditionalCreate()) {
+      if (!(await this.doesBrowserSupportConditionalCreate())) {
         throw new Error("CONDITIONAL_CREATE_NOT_SUPPORTED");
       }
     }
@@ -277,7 +277,7 @@ export class Passkey {
     localStorage.setItem(this.passkeyLocalStorageKey, JSON.stringify(credentialsMap));
   }
 
-  private doesBrowserSupportConditionalCreate() {
+  private async doesBrowserSupportConditionalCreate() {
     // @ts-expect-error types are not up to date
     if (window.PublicKeyCredential && PublicKeyCredential.getClientCapabilities) {
       // @ts-expect-error types are not up to date
