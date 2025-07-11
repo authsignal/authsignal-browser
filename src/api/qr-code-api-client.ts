@@ -11,8 +11,14 @@ export class QrCodeApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async challenge({action}: {action: string}): Promise<QrCodeChallengeResponse | ErrorResponse> {
-    const body = {action};
+  async challenge({
+    action,
+    custom,
+  }: {
+    action: string;
+    custom?: Record<string, unknown>;
+  }): Promise<QrCodeChallengeResponse | ErrorResponse> {
+    const body = {action, custom};
 
     const response = await fetch(`${this.baseUrl}/client/challenge/qr-code`, {
       method: "POST",
