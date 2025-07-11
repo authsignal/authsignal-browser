@@ -34,4 +34,4 @@ export class Push {
 
     return handleApiResponse(response);
   }
-} 
+}

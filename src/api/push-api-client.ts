@@ -25,11 +25,7 @@ export class PushApiClient {
     return responseJson;
   }
 
-  async verify({
-    challengeId,
-  }: {
-    challengeId: string;
-  }): Promise<PushVerifyResponse | ErrorResponse> {
+  async verify({challengeId}: {challengeId: string}): Promise<PushVerifyResponse | ErrorResponse> {
     const body = {challengeId};
 
     const response = await fetch(`${this.baseUrl}/client/verify/push`, {
@@ -42,4 +38,4 @@ export class PushApiClient {
 
     return responseJson;
   }
-} 
+}
