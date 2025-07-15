@@ -5,18 +5,17 @@ import {QrHandler} from "./qr-code/base-qr-handler";
 import {RestQrHandler} from "./qr-code/rest-qr-handler";
 import {WebSocketQrHandler} from "./qr-code/websocket-qr-handler";
 
-type Mode = "websocket" | "rest";
-
 type QrCodeOptions = {
   baseUrl: string;
   tenantId: string;
-  mode: Mode;
 };
 
 export type ChallengeParams = {
   action: string;
   custom?: Record<string, unknown>;
-  /** The interval in milliseconds at which the QR code challenge will be polled. Default: 5 seconds (Only used in REST API mode)*/
+  /** Use REST API polling instead of WebSocket connection. Default: false */
+  polling?: boolean;
+  /** The interval in milliseconds at which the QR code challenge will be polled. Default: 5 seconds (Only used when polling is true)*/
   pollInterval?: number;
   /** The interval in milliseconds at which the QR code challenge will be refreshed. Default: 9 minutes */
   refreshInterval?: number;
@@ -27,25 +26,43 @@ export type ChallengeParams = {
 };
 
 export class QrCode {
-  private handler: QrHandler;
+  private handler: QrHandler | null = null;
+  private baseUrl: string;
+  private tenantId: string;
 
-  constructor({baseUrl, tenantId, mode = "websocket"}: QrCodeOptions) {
-    if (mode === "websocket") {
-      this.handler = new WebSocketQrHandler({baseUrl, tenantId});
-    } else {
-      this.handler = new RestQrHandler({baseUrl, tenantId});
-    }
+  constructor({baseUrl, tenantId}: QrCodeOptions) {
+    this.baseUrl = baseUrl;
+    this.tenantId = tenantId;
   }
 
   async challenge(params: ChallengeParams): Promise<AuthsignalResponse<QrCodeChallengeResponse>> {
-    return this.handler.challenge(params);
+    const {polling = false, ...challengeParams} = params;
+
+    if (this.handler) {
+      this.handler.disconnect();
+    }
+
+    if (polling) {
+      this.handler = new RestQrHandler({baseUrl: this.baseUrl, tenantId: this.tenantId});
+    } else {
+      this.handler = new WebSocketQrHandler({baseUrl: this.baseUrl, tenantId: this.tenantId});
+    }
+
+    return this.handler.challenge(challengeParams);
   }
 
   async refresh({custom}: {custom?: Record<string, unknown>} = {}): Promise<void> {
+    if (!this.handler) {
+      throw new Error("challenge() must be called before refresh()");
+    }
+
     return this.handler.refresh({custom});
   }
 
   disconnect(): void {
-    this.handler.disconnect();
+    if (this.handler) {
+      this.handler.disconnect();
+      this.handler = null;
+    }
   }
 }

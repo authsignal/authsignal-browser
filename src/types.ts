@@ -61,7 +61,6 @@ export type AuthsignalOptions = {
   baseUrl?: string;
   tenantId: string;
   onTokenExpired?: () => void;
-  mode?: "rest" | "websocket";
 };
 
 export enum AuthsignalWindowMessage {

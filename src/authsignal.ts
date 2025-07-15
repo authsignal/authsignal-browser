@@ -49,7 +49,6 @@ export class Authsignal {
     baseUrl = DEFAULT_BASE_URL,
     tenantId,
     onTokenExpired,
-    mode = "websocket",
   }: AuthsignalOptions) {
     this.cookieDomain = cookieDomain || getCookieDomain();
     this.anonymousIdCookieName = cookieName;
@@ -80,7 +79,7 @@ export class Authsignal {
     this.emailML = new EmailMagicLink({tenantId, baseUrl, onTokenExpired});
     this.sms = new Sms({tenantId, baseUrl, onTokenExpired});
     this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired});
-    this.qrCode = new QrCode({tenantId, baseUrl, mode});
+    this.qrCode = new QrCode({tenantId, baseUrl});
     this.push = new Push({tenantId, baseUrl});
   }
 
