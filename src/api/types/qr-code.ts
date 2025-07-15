@@ -1,6 +1,10 @@
 export type QrCodeChallengeResponse = {
   challengeId: string;
-  deviceCode: string;
+  expiresAt: string;
+  /**
+   * Only available in polling mode
+   */
+  deviceCode?: string;
 };
 
 export type QrCodeVerifyResponse = {

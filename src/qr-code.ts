@@ -1,38 +1,68 @@
-import {QrCodeApiClient} from "./api/qr-code-api-client";
-import {QrCodeChallengeResponse, QrCodeVerifyResponse} from "./api/types/qr-code";
-import {handleApiResponse} from "./helpers";
+import {QrCodeChallengeResponse} from "./api/types/qr-code";
+import {ChallengeState} from "./api/types/websocket";
 import {AuthsignalResponse} from "./types";
+import {QrHandler} from "./qr-code/base-qr-handler";
+import {RestQrHandler} from "./qr-code/rest-qr-handler";
+import {WebSocketQrHandler} from "./qr-code/websocket-qr-handler";
 
 type QrCodeOptions = {
   baseUrl: string;
   tenantId: string;
 };
 
-type ChallengeParams = {
+export type ChallengeParams = {
   action: string;
-};
-
-type VerifyParams = {
-  challengeId: string;
-  deviceCode: string;
+  custom?: Record<string, unknown>;
+  /** Use REST API polling instead of WebSocket connection. Default: false */
+  polling?: boolean;
+  /** The interval in milliseconds at which the QR code challenge will be polled. Default: 5 seconds (Only used when polling is true)*/
+  pollInterval?: number;
+  /** The interval in milliseconds at which the QR code challenge will be refreshed. Default: 9 minutes */
+  refreshInterval?: number;
+  /** A callback function that is called when the QR code challenge is refreshed. */
+  onRefresh?: (challengeId: string, expiresAt: string) => void;
+  /** A callback function that is called when the state of the QR code challenge changes. */
+  onStateChange: (state: ChallengeState, accessToken?: string) => void;
 };
 
 export class QrCode {
-  private api: QrCodeApiClient;
+  private handler: QrHandler | null = null;
+  private baseUrl: string;
+  private tenantId: string;
 
   constructor({baseUrl, tenantId}: QrCodeOptions) {
-    this.api = new QrCodeApiClient({baseUrl, tenantId});
+    this.baseUrl = baseUrl;
+    this.tenantId = tenantId;
   }
 
-  async challenge({action}: ChallengeParams): Promise<AuthsignalResponse<QrCodeChallengeResponse>> {
-    const response = await this.api.challenge({action});
+  async challenge(params: ChallengeParams): Promise<AuthsignalResponse<QrCodeChallengeResponse>> {
+    const {polling = false, ...challengeParams} = params;
 
-    return handleApiResponse(response);
+    if (this.handler) {
+      this.handler.disconnect();
+    }
+
+    if (polling) {
+      this.handler = new RestQrHandler({baseUrl: this.baseUrl, tenantId: this.tenantId});
+    } else {
+      this.handler = new WebSocketQrHandler({baseUrl: this.baseUrl, tenantId: this.tenantId});
+    }
+
+    return this.handler.challenge(challengeParams);
   }
 
-  async verify({challengeId, deviceCode}: VerifyParams): Promise<AuthsignalResponse<QrCodeVerifyResponse>> {
-    const response = await this.api.verify({challengeId, deviceCode});
+  async refresh({custom}: {custom?: Record<string, unknown>} = {}): Promise<void> {
+    if (!this.handler) {
+      throw new Error("challenge() must be called before refresh()");
+    }
 
-    return handleApiResponse(response);
+    return this.handler.refresh({custom});
+  }
+
+  disconnect(): void {
+    if (this.handler) {
+      this.handler.disconnect();
+      this.handler = null;
+    }
   }
 }

@@ -6,4 +6,4 @@ export type PushVerifyResponse = {
   isVerified: boolean;
   isConsumed: boolean;
   accessToken?: string;
-}; 
+};
