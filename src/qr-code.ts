@@ -11,7 +11,9 @@ type QrCodeOptions = {
 };
 
 export type ChallengeParams = {
+  /** The action to be performed when the QR code is scanned. If track action is called, this must match the action passed to track. */
   action: string;
+  /** Custom data to be included in the challenge request. If track action is called, this must be omitted. */
   custom?: Record<string, unknown>;
   /** Use REST API polling instead of WebSocket connection. Default: false */
   polling?: boolean;

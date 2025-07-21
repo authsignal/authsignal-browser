@@ -33,6 +33,7 @@ export interface StateChangeMessage {
 export type WebSocketMessage = CreateChallengeMessage | ChallengeCreatedMessage | StateChangeMessage;
 
 export interface WebSocketQrCodeOptions {
+  token?: string;
   action: string;
   custom?: Record<string, unknown>;
   refreshInterval?: number;

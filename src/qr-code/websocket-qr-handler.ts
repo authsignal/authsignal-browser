@@ -3,9 +3,11 @@ import {QrCodeChallengeResponse} from "../api/types/qr-code";
 import {AuthsignalResponse} from "../types";
 import {ChallengeParams} from "../qr-code";
 import {BaseQrHandler} from "./base-qr-handler";
+import {TokenCache} from "../token-cache";
 
 export class WebSocketQrHandler extends BaseQrHandler {
   private wsClient: WebSocketClient;
+  private cache = TokenCache.shared;
 
   constructor({baseUrl, tenantId}: {baseUrl: string; tenantId: string}) {
     super();
@@ -14,6 +16,7 @@ export class WebSocketQrHandler extends BaseQrHandler {
 
   async challenge(params: ChallengeParams): Promise<AuthsignalResponse<QrCodeChallengeResponse>> {
     const response = await this.wsClient.createQrCodeChallenge({
+      token: this.cache.token || undefined,
       action: params.action,
       custom: params.custom,
       refreshInterval: params.refreshInterval,

@@ -5,6 +5,7 @@ import {handleApiResponse} from "../helpers";
 import {AuthsignalResponse} from "../types";
 import {ChallengeParams} from "../qr-code";
 import {BaseQrHandler} from "./base-qr-handler";
+import {TokenCache} from "../token-cache";
 
 const DEFAULT_REFRESH_INTERVAL = 9 * 60 * 1000;
 const DEFAULT_POLL_INTERVAL = 5 * 1000;
@@ -14,6 +15,7 @@ export class RestQrHandler extends BaseQrHandler {
   private pollingInterval?: NodeJS.Timeout;
   private refreshTimeout?: NodeJS.Timeout;
   private currentChallengeParams?: ChallengeParams;
+  private cache = TokenCache.shared;
 
   constructor({baseUrl, tenantId}: {baseUrl: string; tenantId: string}) {
     super();
@@ -21,7 +23,11 @@ export class RestQrHandler extends BaseQrHandler {
   }
 
   async challenge(params: ChallengeParams): Promise<AuthsignalResponse<QrCodeChallengeResponse>> {
-    const response = await this.api.challenge({action: params.action, custom: params.custom});
+    const response = await this.api.challenge({
+      token: this.cache.token || undefined,
+      action: params.action,
+      custom: params.custom,
+    });
     const result = handleApiResponse(response);
 
     if (result.data) {
@@ -43,7 +49,14 @@ export class RestQrHandler extends BaseQrHandler {
       if (params.onRefresh) {
         const onRefresh = params.onRefresh;
         this.startRefreshTimer(
-          () => this.performRefresh(params.action, params.custom, onRefresh, params.onStateChange, pollInterval),
+          () =>
+            this.performRefresh({
+              action: params.action,
+              custom: params.custom,
+              onRefresh,
+              onStateChange: params.onStateChange,
+              pollInterval,
+            }),
           refreshInterval
         );
       }
@@ -56,6 +69,7 @@ export class RestQrHandler extends BaseQrHandler {
     if (!this.currentChallengeParams) return;
 
     const response = await this.api.challenge({
+      token: this.cache.token || undefined,
       action: this.currentChallengeParams.action,
       custom: custom || this.currentChallengeParams.custom,
     });
@@ -81,7 +95,14 @@ export class RestQrHandler extends BaseQrHandler {
         const refreshInterval = this.currentChallengeParams.refreshInterval || DEFAULT_REFRESH_INTERVAL;
         const {action, custom, onRefresh, onStateChange, pollInterval} = this.currentChallengeParams;
         this.startRefreshTimer(
-          () => this.performRefresh(action, custom, onRefresh, onStateChange, pollInterval || DEFAULT_POLL_INTERVAL),
+          () =>
+            this.performRefresh({
+              action,
+              custom,
+              onRefresh,
+              onStateChange,
+              pollInterval: pollInterval || DEFAULT_POLL_INTERVAL,
+            }),
           refreshInterval
         );
       }
@@ -109,14 +130,20 @@ export class RestQrHandler extends BaseQrHandler {
     }
   }
 
-  private async performRefresh(
-    action: string,
-    custom: Record<string, unknown> | undefined,
-    onRefresh: (challengeId: string, expiresAt: string) => void,
-    onStateChange: (state: ChallengeState, accessToken?: string) => void,
-    pollInterval: number
-  ): Promise<void> {
-    const response = await this.api.challenge({action, custom});
+  private async performRefresh({
+    action,
+    custom,
+    onRefresh,
+    onStateChange,
+    pollInterval,
+  }: {
+    action: string;
+    custom?: Record<string, unknown> | undefined;
+    onRefresh: (challengeId: string, expiresAt: string) => void;
+    onStateChange: (state: ChallengeState, accessToken?: string) => void;
+    pollInterval: number;
+  }): Promise<void> {
+    const response = await this.api.challenge({token: this.cache.token || undefined, action, custom});
     const result = handleApiResponse(response);
 
     if (result.data) {

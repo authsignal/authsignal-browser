@@ -1,3 +1,4 @@
+import {TokenCache} from "../token-cache";
 import {
   WebSocketMessage,
   CreateChallengeMessage,
@@ -16,6 +17,7 @@ export class WebSocketClient {
   private messageHandlers: Map<string, (message: WebSocketMessage) => void> = new Map();
   private options: WebSocketQrCodeOptions | null = null;
   private refreshInterval: NodeJS.Timeout | null = null;
+  private tokenCache = TokenCache.shared;
 
   constructor({baseUrl, tenantId}: {baseUrl: string; tenantId: string}) {
     const wsUrl = baseUrl
@@ -31,7 +33,13 @@ export class WebSocketClient {
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        this.ws = new WebSocket(this.baseUrl, ["authsignal-ws", `x.authsignal.tenant.${this.tenantId}`]);
+        const protocols = ["authsignal-ws"];
+        if (this.tokenCache.token) {
+          protocols.push(`x.authsignal.token.${this.tokenCache.token}`);
+        } else {
+          protocols.push(`x.authsignal.tenant.${this.tenantId}`);
+        }
+        this.ws = new WebSocket(this.baseUrl, protocols);
 
         this.ws.onopen = () => {
           resolve();
@@ -177,7 +185,7 @@ export class WebSocketClient {
     this.ws.send(JSON.stringify(message));
   }
 
-  async refreshQrCodeChallenge({custom}: {custom?: Record<string, any>}): Promise<WebSocketQrCodeResponse> {
+  async refreshQrCodeChallenge({custom}: {custom?: Record<string, unknown>}): Promise<WebSocketQrCodeResponse> {
     if (!this.options) {
       throw new Error("Call createQrCodeChallenge first");
     }
