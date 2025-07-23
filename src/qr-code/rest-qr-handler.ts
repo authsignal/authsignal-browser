@@ -8,7 +8,7 @@ import {BaseQrHandler} from "./base-qr-handler";
 import {TokenCache} from "../token-cache";
 
 const DEFAULT_REFRESH_INTERVAL = 9 * 60 * 1000;
-const DEFAULT_POLL_INTERVAL = 5 * 1000;
+const DEFAULT_POLL_INTERVAL = 3 * 1000;
 
 export class RestQrHandler extends BaseQrHandler {
   private api: QrCodeApiClient;
@@ -180,8 +180,11 @@ export class RestQrHandler extends BaseQrHandler {
         if (result.data.isVerified) {
           onStateChange("approved", result.data.token);
           this.clearPolling();
-        } else if (result.data.isClaimed) {
+        } else if (result.data.isClaimed && !result.data.isConsumed) {
           onStateChange("claimed");
+        } else if (result.data.isClaimed && result.data.isConsumed) {
+          onStateChange("rejected");
+          this.clearPolling();
         }
       }
     }, pollInterval);
