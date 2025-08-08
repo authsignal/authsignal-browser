@@ -20,6 +20,7 @@ import {EmailMagicLink} from "./email-magic-link";
 import {SecurityKey} from "./security-key";
 import {QrCode} from "./qr-code";
 import {Push} from "./push";
+import {Whatsapp} from "./whatsapp";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 const DEFAULT_PROFILING_COOKIE_NAME = "__as_pid";
@@ -42,6 +43,7 @@ export class Authsignal {
   securityKey: SecurityKey;
   qrCode: QrCode;
   push: Push;
+  whatsapp: Whatsapp;
 
   constructor({
     cookieDomain,
@@ -81,6 +83,7 @@ export class Authsignal {
     this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired});
     this.qrCode = new QrCode({tenantId, baseUrl});
     this.push = new Push({tenantId, baseUrl});
+    this.whatsapp = new Whatsapp({tenantId, baseUrl, onTokenExpired});
   }
 
   setToken(token: string) {
