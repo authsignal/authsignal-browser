@@ -29,6 +29,26 @@ const DEFAULT_BASE_URL = "https://api.authsignal.com/v1";
 
 const TMX_ORG_ID = "4a08uqve";
 
+/**
+ * Main Authsignal SDK client for browser applications.
+ *
+ * This is the primary entry point for integrating Authsignal's multi-factor authentication
+ * and passwordless authentication into your web application. It provides access to various
+ * authentication methods including passkeys, TOTP, SMS, email, push notifications, and more.
+ *
+ * @example
+ * ```typescript
+ * import { Authsignal } from '@authsignal/browser';
+ *
+ * const authsignal = new Authsignal({
+ *   tenantId: 'your-tenant-id',
+ *   baseUrl: 'https://api.authsignal.com/v1'
+ * });
+ *
+ * await authsignal.passkey.signUp({ email: 'user@example.com' });
+ * await authsignal.sms.enroll({ token: 'user-token', phoneNumber: '+1234567890' });
+ * ```
+ */
 export class Authsignal {
   anonymousId = "";
   profilingId = "";
@@ -45,6 +65,28 @@ export class Authsignal {
   push: Push;
   whatsapp: Whatsapp;
 
+  /**
+   * Creates a new Authsignal SDK instance.
+   *
+   * @param tenantId - Your Authsignal tenant id (required)
+   * @param baseUrl - The base URL for Authsignal API calls (defaults to 'https://api.authsignal.com/v1')
+   * @param cookieDomain - Cookie domain for user identification (defaults to current hostname)
+   * @param cookieName - Name of the anonymous ID cookie (defaults to '__as_aid')
+   * @param onTokenExpired - Callback function called when authentication tokens expire
+   *
+   * @throws {Error} When tenantId is not provided
+   *
+   * @example
+   * ```typescript
+   * const authsignal = new Authsignal({
+   *   tenantId: 'your-tenant-id',
+   *   baseUrl: 'https://api.authsignal.com/v1',
+   *   onTokenExpired: () => {
+   *     window.location.href = '/login';
+   *   }
+   * });
+   * ```
+   */
   constructor({
     cookieDomain,
     cookieName = DEFAULT_COOKIE_NAME,
@@ -86,10 +128,60 @@ export class Authsignal {
     this.whatsapp = new Whatsapp({tenantId, baseUrl, onTokenExpired});
   }
 
+  /**
+   * Sets the authentication token for API requests.
+   *
+   * This token is typically obtained after successful authentication and is used
+   * for subsequent API calls that require user authentication.
+   *
+   * @param token - The authentication token to store
+   *
+   * @example
+   * ```typescript
+   * const loginResult = await authsignal.launch('https://your-app.authsignal.com/login');
+   * if (loginResult.token) {
+   *   authsignal.setToken(loginResult.token);
+   * }
+   * ```
+   */
   setToken(token: string) {
     TokenCache.shared.token = token;
   }
 
+  /**
+   * Launches the Authsignal prebuilt UI for authentication flows.
+   *
+   * This method opens the Authsignal challenge UI in different modes to handle various
+   * authentication scenarios like login, signup, or step-up authentication.
+   *
+   * @param url - The Authsignal challenge URL to launch
+   * @param options - Configuration for how the UI should be displayed
+   * @param options.mode - Display mode: 'redirect' (default), 'popup', or 'window'
+   * @param options.popupOptions - Configuration for popup mode (width, height, closable)
+   * @param options.windowOptions - Configuration for window mode (width, height)
+   *
+   * @returns
+   * - `undefined` for redirect mode (page redirects)
+   * - `Promise<TokenPayload>` for popup/window modes (resolves with token when complete)
+   *
+   * @example
+   * ```typescript
+   * authsignal.launch('https://your-app.authsignal.com/login');
+   *
+   * const result = await authsignal.launch('https://your-app.authsignal.com/login', {
+   *   mode: 'popup',
+   *   popupOptions: { width: '400px', isClosable: true }
+   * });
+   * if (result.token) {
+   *   authsignal.setToken(result.token);
+   * }
+   *
+   * const windowResult = await authsignal.launch('https://your-app.authsignal.com/mfa', {
+   *   mode: 'window',
+   *   windowOptions: { width: 500, height: 600 }
+   * });
+   * ```
+   */
   launch(url: string, options?: {mode?: "redirect"} & LaunchOptions): undefined;
   launch(url: string, options?: {mode: "popup"} & LaunchOptions): Promise<TokenPayload>;
   launch(url: string, options?: {mode: "window"} & LaunchOptions): Promise<TokenPayload>;
@@ -105,6 +197,23 @@ export class Authsignal {
     }
   }
 
+  /**
+   * Initializes advanced device profiling for fraud detection.
+   *
+   * This method sets up ThreatMetrix-based device fingerprinting to help detect
+   * fraudulent behavior and improve security decisions. Call this method early
+   * in your application lifecycle for optimal profiling data collection.
+   *
+   * @param baseUrl - Custom base URL for the profiling service (optional)
+   *
+   * @example
+   * ```typescript
+   * const authsignal = new Authsignal({ tenantId: 'your-tenant-id' });
+   *
+   * authsignal.initAdvancedProfiling();
+   * authsignal.initAdvancedProfiling('https://custom-profiling.example.com');
+   * ```
+   */
   initAdvancedProfiling(baseUrl?: string) {
     const profilingId = uuidv4();
 
@@ -118,11 +227,11 @@ export class Authsignal {
       secure: document.location.protocol !== "http:",
     });
 
-    const tmxProfilingScruiptUrl = baseUrl
+    const tmxProfilingScriptUrl = baseUrl
       ? `${baseUrl}/fp/tags.js?org_id=${TMX_ORG_ID}&session_id=${profilingId}`
       : `https://h.online-metrix.net/fp/tags.js?org_id=${TMX_ORG_ID}&session_id=${profilingId}`;
     const script = document.createElement("script");
-    script.src = tmxProfilingScruiptUrl;
+    script.src = tmxProfilingScriptUrl;
     script.async = false;
     script.id = "as_adv_profile";
     document.head.appendChild(script);

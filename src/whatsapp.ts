@@ -46,5 +46,3 @@ export class Whatsapp {
     return handleApiResponse(response);
   }
 }
-
-
