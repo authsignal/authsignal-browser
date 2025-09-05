@@ -21,6 +21,7 @@ import {SecurityKey} from "./security-key";
 import {QrCode} from "./qr-code";
 import {Push} from "./push";
 import {Whatsapp} from "./whatsapp";
+import {DigitalCredential} from "./digital-credential";
 
 const DEFAULT_COOKIE_NAME = "__as_aid";
 const DEFAULT_PROFILING_COOKIE_NAME = "__as_pid";
@@ -44,6 +45,7 @@ export class Authsignal {
   qrCode: QrCode;
   push: Push;
   whatsapp: Whatsapp;
+  digitalCredential: DigitalCredential;
 
   constructor({
     cookieDomain,
@@ -84,6 +86,7 @@ export class Authsignal {
     this.qrCode = new QrCode({tenantId, baseUrl});
     this.push = new Push({tenantId, baseUrl});
     this.whatsapp = new Whatsapp({tenantId, baseUrl, onTokenExpired});
+    this.digitalCredential = new DigitalCredential({tenantId, baseUrl, onTokenExpired});
   }
 
   setToken(token: string) {
