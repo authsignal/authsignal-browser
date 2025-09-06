@@ -2,6 +2,7 @@ import {DigitalCredentialApiClient} from "./api/digital-credential-api-client";
 import {TokenCache} from "./token-cache";
 import {handleErrorResponse} from "./helpers";
 import {AuthsignalResponse} from "./types";
+import {browserSupportsDigitalCredential} from "./utils";
 
 type DigitalCredentialOptions = {
   baseUrl: string;
@@ -30,7 +31,7 @@ export class DigitalCredential {
   }
 
   async requestCredential(params?: RequestCredentialParams): Promise<AuthsignalResponse<RequestCredentialResponse>> {
-    if (!this.browserSupportsDigitalCredential()) {
+    if (!browserSupportsDigitalCredential()) {
       throw new Error("Digital Credential API is not supported in this browser");
     }
 
@@ -83,13 +84,5 @@ export class DigitalCredential {
         userId: verifyResponse.userId,
       },
     };
-  }
-
-  browserSupportsDigitalCredential(): boolean {
-    if (typeof window !== "undefined" && "DigitalCredential" in window) {
-      return typeof window.DigitalCredential === "function";
-    }
-
-    return false;
   }
 }

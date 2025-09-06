@@ -13,3 +13,4 @@ export type {
   VerifyPresentationRequest,
   VerifyPresentationResponse,
 } from "./api/types/digital-credential";
+export {browserSupportsDigitalCredential} from "./utils";
