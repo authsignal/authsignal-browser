@@ -17,6 +17,8 @@ type RequestCredentialParams = {
 type RequestCredentialResponse = {
   isVerified: boolean;
   token?: string;
+  username?: string;
+  userId?: string;
 };
 
 export class DigitalCredential {
@@ -77,6 +79,8 @@ export class DigitalCredential {
       data: {
         isVerified: verifyResponse.isVerified,
         token: verifyResponse.accessToken,
+        username: verifyResponse.username,
+        userId: verifyResponse.userId,
       },
     };
   }
