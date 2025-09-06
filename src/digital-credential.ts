@@ -28,7 +28,7 @@ export class DigitalCredential {
   }
 
   async requestCredential(params?: RequestCredentialParams): Promise<AuthsignalResponse<RequestCredentialResponse>> {
-    if (!(await this.browserSupportsDigitalCredential())) {
+    if (!this.browserSupportsDigitalCredential()) {
       throw new Error("Digital Credential API is not supported in this browser");
     }
 
@@ -81,7 +81,7 @@ export class DigitalCredential {
     };
   }
 
-  async browserSupportsDigitalCredential(): Promise<boolean> {
+  browserSupportsDigitalCredential(): boolean {
     if (typeof window !== "undefined" && "DigitalCredential" in window) {
       return typeof window.DigitalCredential === "function";
     }
