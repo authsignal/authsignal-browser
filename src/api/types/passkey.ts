@@ -12,21 +12,14 @@ export type RegistrationOptsRequest = {
 };
 
 export type RegistrationOptsResponse = {
-  challengeId: string;
   options: PublicKeyCredentialCreationOptionsJSON;
 };
 
-export type AuthenticationOptsRequest = {
-  challengeId?: string;
-};
-
 export type AuthenticationOptsResponse = {
-  challengeId: string;
   options: PublicKeyCredentialCreationOptionsJSON;
 };
 
 export type AddAuthenticatorRequest = {
-  challengeId: string;
   registrationCredential: RegistrationResponseJSON;
   conditionalCreate?: boolean;
 };
@@ -40,7 +33,6 @@ export type AddAuthenticatorResponse = {
 };
 
 export type VerifyRequest = {
-  challengeId: string;
   authenticationCredential: AuthenticationResponseJSON;
   deviceId?: string;
 };
@@ -60,7 +52,7 @@ export type PasskeyAuthenticatorResponse = {
 };
 
 export type ChallengeResponse = {
-  challengeId: string;
+  challengeId?: string;
 };
 
 export type ErrorResponse = {

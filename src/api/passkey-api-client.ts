@@ -2,7 +2,6 @@ import {buildHeaders, handleTokenExpired} from "./helpers";
 import {
   AddAuthenticatorRequest,
   AddAuthenticatorResponse,
-  AuthenticationOptsRequest,
   AuthenticationOptsResponse,
   ChallengeResponse,
   ErrorResponse,
@@ -34,11 +33,14 @@ export class PasskeyApiClient {
       ? {username, authenticatorAttachment}
       : {username};
 
-    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options`, {
-      method: "POST",
-      headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify(body),
-    });
+    const response = await fetch(
+      `${this.baseUrl}/client/user-authenticators/passkey/registration-options?browser=true`,
+      {
+        method: "POST",
+        headers: buildHeaders({token, tenantId: this.tenantId}),
+        body: JSON.stringify(body),
+      }
+    );
 
     const responseJson = await response.json();
 
@@ -47,17 +49,14 @@ export class PasskeyApiClient {
     return responseJson;
   }
 
-  async authenticationOptions({
-    token,
-    challengeId,
-  }: {token?: string} & AuthenticationOptsRequest): Promise<AuthenticationOptsResponse | ErrorResponse> {
-    const body: AuthenticationOptsRequest = {challengeId};
-
-    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
-      method: "POST",
-      headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify(body),
-    });
+  async authenticationOptions({token}: {token?: string}): Promise<AuthenticationOptsResponse | ErrorResponse> {
+    const response = await fetch(
+      `${this.baseUrl}/client/user-authenticators/passkey/authentication-options?browser=true`,
+      {
+        method: "POST",
+        headers: buildHeaders({token, tenantId: this.tenantId}),
+      }
+    );
 
     const responseJson = await response.json();
 
@@ -68,17 +67,15 @@ export class PasskeyApiClient {
 
   async addAuthenticator({
     token,
-    challengeId,
     registrationCredential,
     conditionalCreate,
   }: {token: string} & AddAuthenticatorRequest): Promise<AddAuthenticatorResponse | ErrorResponse> {
     const body: AddAuthenticatorRequest = {
-      challengeId,
       registrationCredential,
       conditionalCreate,
     };
 
-    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
+    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey?browser=true`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
@@ -93,13 +90,12 @@ export class PasskeyApiClient {
 
   async verify({
     token,
-    challengeId,
     authenticationCredential,
     deviceId,
   }: {token?: string} & VerifyRequest): Promise<VerifyResponse | ErrorResponse> {
-    const body: VerifyRequest = {challengeId, authenticationCredential, deviceId};
+    const body: VerifyRequest = {authenticationCredential, deviceId};
 
-    const response = await fetch(`${this.baseUrl}/client/verify/passkey`, {
+    const response = await fetch(`${this.baseUrl}/client/verify/passkey?browser=true`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
@@ -130,7 +126,7 @@ export class PasskeyApiClient {
   }
 
   async challenge(action: string): Promise<ChallengeResponse | ErrorResponse> {
-    const response = await fetch(`${this.baseUrl}/client/challenge`, {
+    const response = await fetch(`${this.baseUrl}/client/challenge?browser=true`, {
       method: "POST",
       headers: buildHeaders({tenantId: this.tenantId}),
       body: JSON.stringify({action}),

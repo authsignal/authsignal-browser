@@ -98,7 +98,6 @@ export class Passkey {
       const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
 
       const addAuthenticatorResponse = await this.api.addAuthenticator({
-        challengeId: optionsResponse.challengeId,
         registrationCredential: registrationResponse,
         token: userToken,
         conditionalCreate: useAutoRegister,
@@ -162,7 +161,6 @@ export class Passkey {
 
     const optionsResponse = await this.api.authenticationOptions({
       token: params?.token,
-      challengeId: challengeResponse?.challengeId,
     });
 
     if ("error" in optionsResponse) {
@@ -182,7 +180,6 @@ export class Passkey {
       }
 
       const verifyResponse = await this.api.verify({
-        challengeId: optionsResponse.challengeId,
         authenticationCredential: authenticationResponse,
         token: params?.token,
         deviceId: this.anonymousId,
