@@ -130,7 +130,7 @@ export class PasskeyApiClient {
   }
 
   async challenge(action: string, cookies = false): Promise<ChallengeResponse | ErrorResponse> {
-    const url = cookies ? `${this.baseUrl}/client/challenge` : `${this.baseUrl}/client/challenge/web`;
+    const url = cookies ? `${this.baseUrl}/client/challenge/web` : `${this.baseUrl}/client/challenge`;
 
     const response = await fetch(url, {
       method: "POST",
