@@ -18,6 +18,7 @@ export type RegistrationOptsResponse = {
 
 export type AuthenticationOptsRequest = {
   challengeId?: string;
+  cookies?: boolean;
 };
 
 export type AuthenticationOptsResponse = {
@@ -43,6 +44,7 @@ export type VerifyRequest = {
   challengeId?: string;
   authenticationCredential: AuthenticationResponseJSON;
   deviceId?: string;
+  cookies?: boolean;
 };
 
 export type VerifyResponse = {
