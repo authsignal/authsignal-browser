@@ -36,6 +36,7 @@ type SignInParams = {
   autofill?: boolean;
   action?: string;
   token?: string;
+  cookies?: boolean;
   onVerificationStarted?: () => unknown;
 };
 
@@ -152,7 +153,7 @@ export class Passkey {
       }
     }
 
-    const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
+    const challengeResponse = params?.action ? await this.api.challenge(params.action, params.cookies) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
       autofillRequestPending = false;

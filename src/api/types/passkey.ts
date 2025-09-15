@@ -21,7 +21,7 @@ export type AuthenticationOptsRequest = {
 };
 
 export type AuthenticationOptsResponse = {
-  challengeId: string;
+  challengeId?: string;
   options: PublicKeyCredentialCreationOptionsJSON;
 };
 
@@ -40,7 +40,7 @@ export type AddAuthenticatorResponse = {
 };
 
 export type VerifyRequest = {
-  challengeId: string;
+  challengeId?: string;
   authenticationCredential: AuthenticationResponseJSON;
   deviceId?: string;
 };
