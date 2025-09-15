@@ -50,6 +50,7 @@ export class PasskeyApiClient {
   async authenticationOptions({
     token,
     challengeId,
+    cookies = false,
   }: {token?: string} & AuthenticationOptsRequest): Promise<AuthenticationOptsResponse | ErrorResponse> {
     const body: AuthenticationOptsRequest = {challengeId};
 
@@ -57,6 +58,7 @@ export class PasskeyApiClient {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
+      credentials: cookies ? "include" : "same-origin",
     });
 
     const responseJson = await response.json();
@@ -96,6 +98,7 @@ export class PasskeyApiClient {
     token,
     challengeId,
     deviceId,
+    cookies = false,
   }: {token?: string} & VerifyRequest): Promise<VerifyResponse | ErrorResponse> {
     const body: VerifyRequest = {challengeId, authenticationCredential, deviceId};
 
@@ -103,6 +106,7 @@ export class PasskeyApiClient {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
+      credentials: cookies ? "include" : "same-origin",
     });
 
     const responseJson = await response.json();
