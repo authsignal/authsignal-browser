@@ -37,6 +37,7 @@ export class PasskeyApiClient {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
+      credentials: "include",
     });
 
     const responseJson = await response.json();
