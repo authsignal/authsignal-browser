@@ -16,18 +16,11 @@ export type RegistrationOptsResponse = {
   options: PublicKeyCredentialCreationOptionsJSON;
 };
 
-export type AuthenticationOptsRequest = {
-  challengeId?: string;
-  cookies?: boolean;
-};
-
 export type AuthenticationOptsResponse = {
-  challengeId?: string;
   options: PublicKeyCredentialCreationOptionsJSON;
 };
 
 export type AddAuthenticatorRequest = {
-  challengeId: string;
   registrationCredential: RegistrationResponseJSON;
   conditionalCreate?: boolean;
 };
@@ -41,7 +34,6 @@ export type AddAuthenticatorResponse = {
 };
 
 export type VerifyRequest = {
-  challengeId?: string;
   authenticationCredential: AuthenticationResponseJSON;
   deviceId?: string;
   cookies?: boolean;

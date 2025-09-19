@@ -99,7 +99,6 @@ export class Passkey {
       const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
 
       const addAuthenticatorResponse = await this.api.addAuthenticator({
-        challengeId: optionsResponse.challengeId,
         registrationCredential: registrationResponse,
         token: userToken,
         conditionalCreate: useAutoRegister,
@@ -153,7 +152,7 @@ export class Passkey {
       }
     }
 
-    const challengeResponse = params?.action ? await this.api.challenge(params.action, params.cookies) : null;
+    const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
       autofillRequestPending = false;
@@ -161,11 +160,9 @@ export class Passkey {
       return handleErrorResponse(challengeResponse);
     }
 
-    const optionsResponse = await this.api.authenticationOptions({
-      token: params?.token,
-      challengeId: challengeResponse?.challengeId,
-      cookies: params?.cookies,
-    });
+    const optionsResponse = params?.action
+      ? await this.api.authenticationOptions({token: params?.token})
+      : await this.api.authenticationOptionsWeb({token: params?.token});
 
     if ("error" in optionsResponse) {
       autofillRequestPending = false;
@@ -184,11 +181,9 @@ export class Passkey {
       }
 
       const verifyResponse = await this.api.verify({
-        challengeId: optionsResponse.challengeId,
         authenticationCredential: authenticationResponse,
         token: params?.token,
         deviceId: this.anonymousId,
-        cookies: params?.cookies,
       });
 
       if ("error" in verifyResponse) {
