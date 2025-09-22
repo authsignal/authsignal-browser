@@ -9,20 +9,29 @@ import {Authenticator} from "./shared";
 export type RegistrationOptsRequest = {
   username?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
+  useCookies?: boolean;
 };
 
 export type RegistrationOptsResponse = {
-  challengeId: string;
+  challengeId?: string;
   options: PublicKeyCredentialCreationOptionsJSON;
+};
+
+export type AuthenticationOptsRequest = {
+  challengeId?: string;
+  useCookies?: boolean;
 };
 
 export type AuthenticationOptsResponse = {
   options: PublicKeyCredentialCreationOptionsJSON;
+  challengeId?: string;
 };
 
 export type AddAuthenticatorRequest = {
   registrationCredential: RegistrationResponseJSON;
   conditionalCreate?: boolean;
+  challengeId?: string;
+  useCookies?: boolean;
 };
 
 export type AddAuthenticatorResponse = {
@@ -36,7 +45,7 @@ export type AddAuthenticatorResponse = {
 export type VerifyRequest = {
   authenticationCredential: AuthenticationResponseJSON;
   deviceId?: string;
-  cookies?: boolean;
+  useCookies?: boolean;
 };
 
 export type VerifyResponse = {
@@ -51,6 +60,11 @@ export type VerifyResponse = {
 export type PasskeyAuthenticatorResponse = {
   credentialId: string;
   verifiedAt: string;
+};
+
+export type ChallengeRequest = {
+  action?: string;
+  useCookies?: boolean;
 };
 
 export type ChallengeResponse = {

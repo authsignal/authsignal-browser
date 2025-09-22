@@ -2,7 +2,9 @@ import {buildHeaders, handleTokenExpired} from "./helpers";
 import {
   AddAuthenticatorRequest,
   AddAuthenticatorResponse,
+  AuthenticationOptsRequest,
   AuthenticationOptsResponse,
+  ChallengeRequest,
   ChallengeResponse,
   ErrorResponse,
   PasskeyAuthenticatorResponse,
@@ -28,16 +30,23 @@ export class PasskeyApiClient {
     token,
     username,
     authenticatorAttachment,
+    useCookies,
   }: {token: string} & RegistrationOptsRequest): Promise<RegistrationOptsResponse | ErrorResponse> {
     const body: RegistrationOptsRequest = Boolean(authenticatorAttachment)
       ? {username, authenticatorAttachment}
       : {username};
 
-    const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/registration-options/web`, {
+    const url = useCookies
+      ? `${this.baseUrl}/client/user-authenticators/passkey/registration-options/web`
+      : `${this.baseUrl}/client/user-authenticators/passkey/registration-options`;
+
+    const credentials = useCookies ? "include" : "same-origin";
+
+    const response = await fetch(url, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
-      credentials: "include",
+      credentials,
     });
 
     const responseJson = await response.json();
@@ -47,12 +56,17 @@ export class PasskeyApiClient {
     return responseJson;
   }
 
-  async authenticationOptions({token}: {token?: string}): Promise<AuthenticationOptsResponse | ErrorResponse> {
+  async authenticationOptions({
+    token,
+    useCookies,
+  }: {
+    token?: string;
+  } & AuthenticationOptsRequest): Promise<AuthenticationOptsResponse | ErrorResponse> {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify({}),
-      credentials: "include",
+      credentials: useCookies ? "include" : "same-origin",
     });
 
     const responseJson = await response.json();
@@ -81,17 +95,20 @@ export class PasskeyApiClient {
     token,
     registrationCredential,
     conditionalCreate,
+    challengeId,
+    useCookies,
   }: {token: string} & AddAuthenticatorRequest): Promise<AddAuthenticatorResponse | ErrorResponse> {
     const body: AddAuthenticatorRequest = {
       registrationCredential,
       conditionalCreate,
+      challengeId,
     };
 
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
-      credentials: "include",
+      credentials: useCookies ? "include" : "same-origin",
     });
 
     const responseJson = await response.json();
@@ -105,6 +122,7 @@ export class PasskeyApiClient {
     authenticationCredential,
     token,
     deviceId,
+    useCookies,
   }: {token?: string} & VerifyRequest): Promise<VerifyResponse | ErrorResponse> {
     const body: VerifyRequest = {authenticationCredential, deviceId};
 
@@ -112,7 +130,7 @@ export class PasskeyApiClient {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
-      credentials: "include",
+      credentials: useCookies ? "include" : "same-origin",
     });
 
     const responseJson = await response.json();
@@ -139,14 +157,14 @@ export class PasskeyApiClient {
     return response.json();
   }
 
-  async challenge(action: string): Promise<ChallengeResponse | ErrorResponse> {
-    const url = `${this.baseUrl}/client/challenge/web`;
+  async challenge({action, useCookies}: ChallengeRequest): Promise<ChallengeResponse | ErrorResponse> {
+    const url = useCookies ? `${this.baseUrl}/client/challenge/web` : `${this.baseUrl}/client/challenge`;
 
     const response = await fetch(url, {
       method: "POST",
       headers: buildHeaders({tenantId: this.tenantId}),
       body: JSON.stringify({action}),
-      credentials: "include",
+      credentials: useCookies ? "include" : "same-origin",
     });
 
     const responseJson = await response.json();

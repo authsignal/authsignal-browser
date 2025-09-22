@@ -11,6 +11,7 @@ import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";
 import {Authenticator} from "./api/types/shared";
+
 type PasskeyOptions = {
   baseUrl: string;
   tenantId: string;
@@ -24,6 +25,7 @@ type SignUpParams = {
   displayName?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
   useAutoRegister?: boolean;
+  useCookies?: boolean;
 };
 
 type SignUpResponse = {
@@ -36,7 +38,7 @@ type SignInParams = {
   autofill?: boolean;
   action?: string;
   token?: string;
-  cookies?: boolean;
+  useCookies?: boolean;
   onVerificationStarted?: () => unknown;
 };
 
@@ -69,6 +71,7 @@ export class Passkey {
     token,
     authenticatorAttachment = "platform",
     useAutoRegister = false,
+    useCookies = false,
   }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
     const userToken = token ?? this.cache.token;
 
@@ -87,6 +90,7 @@ export class Passkey {
       displayName,
       token: userToken,
       authenticatorAttachment,
+      useCookies,
     };
 
     const optionsResponse = await this.api.registrationOptions(optionsInput);
@@ -102,6 +106,7 @@ export class Passkey {
         registrationCredential: registrationResponse,
         token: userToken,
         conditionalCreate: useAutoRegister,
+        useCookies,
       });
 
       if ("error" in addAuthenticatorResponse) {
@@ -152,7 +157,9 @@ export class Passkey {
       }
     }
 
-    const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
+    const challengeResponse = params?.action
+      ? await this.api.challenge({action: params?.action, useCookies: params?.useCookies})
+      : null;
 
     if (challengeResponse && "error" in challengeResponse) {
       autofillRequestPending = false;
@@ -160,9 +167,10 @@ export class Passkey {
       return handleErrorResponse(challengeResponse);
     }
 
-    const optionsResponse = params?.action
-      ? await this.api.authenticationOptions({token: params?.token})
-      : await this.api.authenticationOptionsWeb({token: params?.token});
+    const optionsResponse =
+      params?.action || !params?.useCookies
+        ? await this.api.authenticationOptions({token: params?.token})
+        : await this.api.authenticationOptionsWeb({token: params?.token});
 
     if ("error" in optionsResponse) {
       autofillRequestPending = false;
@@ -184,6 +192,7 @@ export class Passkey {
         authenticationCredential: authenticationResponse,
         token: params?.token,
         deviceId: this.anonymousId,
+        useCookies: params?.useCookies,
       });
 
       if ("error" in verifyResponse) {
