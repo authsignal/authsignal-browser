@@ -106,6 +106,7 @@ export class Passkey {
         registrationCredential: registrationResponse,
         token: userToken,
         conditionalCreate: useAutoRegister,
+        challengeId: optionsResponse.challengeId,
         useCookies,
       });
 

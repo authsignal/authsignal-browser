@@ -122,9 +122,10 @@ export class PasskeyApiClient {
     authenticationCredential,
     token,
     deviceId,
+    challengeId,
     useCookies,
   }: {token?: string} & VerifyRequest): Promise<VerifyResponse | ErrorResponse> {
-    const body: VerifyRequest = {authenticationCredential, deviceId};
+    const body: VerifyRequest = {authenticationCredential, deviceId, challengeId};
 
     const response = await fetch(`${this.baseUrl}/client/verify/passkey`, {
       method: "POST",
