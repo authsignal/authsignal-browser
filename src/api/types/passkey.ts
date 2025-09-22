@@ -45,6 +45,7 @@ export type AddAuthenticatorResponse = {
 export type VerifyRequest = {
   authenticationCredential: AuthenticationResponseJSON;
   deviceId?: string;
+  challengeId?: string;
   useCookies?: boolean;
 };
 

@@ -169,7 +169,7 @@ export class Passkey {
 
     const optionsResponse =
       params?.action || !params?.useCookies
-        ? await this.api.authenticationOptions({token: params?.token})
+        ? await this.api.authenticationOptions({token: params?.token, useCookies: params?.useCookies})
         : await this.api.authenticationOptionsWeb({token: params?.token});
 
     if ("error" in optionsResponse) {
@@ -192,6 +192,7 @@ export class Passkey {
         authenticationCredential: authenticationResponse,
         token: params?.token,
         deviceId: this.anonymousId,
+        challengeId: optionsResponse.challengeId,
         useCookies: params?.useCookies,
       });
 
