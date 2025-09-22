@@ -58,6 +58,7 @@ export class PasskeyApiClient {
 
   async authenticationOptions({
     token,
+    challengeId,
     useCookies,
   }: {
     token?: string;
@@ -65,7 +66,7 @@ export class PasskeyApiClient {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify({}),
+      body: JSON.stringify({challengeId}),
       credentials: useCookies ? "include" : "same-origin",
     });
 
