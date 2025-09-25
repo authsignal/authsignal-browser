@@ -31,6 +31,7 @@
     "@fingerprintjs/fingerprintjs": "^3.3.6",
     "@simplewebauthn/browser": "^13.1.0",
     "a11y-dialog": "8.0.4",
+    "id-verifier": "^0.1.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

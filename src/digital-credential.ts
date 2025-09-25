@@ -3,6 +3,8 @@ import {TokenCache} from "./token-cache";
 import {handleErrorResponse} from "./helpers";
 import {AuthsignalResponse} from "./types";
 import {browserSupportsDigitalCredential} from "./utils";
+// @ts-expect-error - not typed
+import {requestCredentials} from "id-verifier";
 
 type DigitalCredentialOptions = {
   baseUrl: string;
@@ -13,6 +15,7 @@ type DigitalCredentialOptions = {
 type RequestCredentialParams = {
   action?: string;
   token?: string;
+  mode?: "sdc" | "idv";
 };
 
 type RequestCredentialResponse = {
@@ -44,6 +47,7 @@ export class DigitalCredential {
     const optionsResponse = await this.api.presentationOptions({
       token: params?.token || undefined,
       challengeId: challengeResponse?.challengeId,
+      mode: params?.mode,
     });
 
     if ("error" in optionsResponse) {
@@ -52,19 +56,23 @@ export class DigitalCredential {
 
     const {dcapiOptions, challengeId} = optionsResponse;
 
-    const credentialResponse = await navigator.credentials.get(dcapiOptions);
+    let credentialResponse;
+
+    if (params?.mode === "sdc") {
+      credentialResponse = await navigator.credentials.get(dcapiOptions);
+    } else {
+      credentialResponse = await requestCredentials(dcapiOptions);
+    }
 
     if (!credentialResponse) {
       throw new Error("No credential was provided");
     }
 
-    // @ts-expect-error - Digital Credential API is experimental
-    const {data} = credentialResponse;
-
     const verifyResponse = await this.api.verifyPresentation({
       token: params?.token || undefined,
-      data,
+      data: credentialResponse,
       nonce: dcapiOptions.digital?.requests?.[0]?.data?.nonce,
+      mode: params?.mode,
       challengeId,
     });
 

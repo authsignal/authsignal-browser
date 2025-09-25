@@ -1,6 +1,7 @@
 export type PresentationOptionsRequest = {
   token?: string;
   challengeId?: string;
+  mode?: "sdc" | "idv";
 };
 
 export type PresentationOptionsResponse = {
@@ -15,6 +16,7 @@ export type VerifyPresentationRequest = {
   data: any;
   nonce: string;
   challengeId: string;
+  mode?: "sdc" | "idv";
 };
 
 export type VerifyPresentationResponse = {
