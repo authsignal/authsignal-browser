@@ -1,40 +1,52 @@
-import {buildHeaders} from "./helpers";
+import {buildHeaders, handleTokenExpired} from "./helpers";
 import {ApiClientOptions, ErrorResponse} from "./types/shared";
 import {PushChallengeResponse, PushVerifyResponse} from "./types/push";
 
 export class PushApiClient {
   tenantId: string;
   baseUrl: string;
+  onTokenExpired?: () => void;
 
-  constructor({baseUrl, tenantId}: ApiClientOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired}: ApiClientOptions) {
     this.tenantId = tenantId;
     this.baseUrl = baseUrl;
+    this.onTokenExpired = onTokenExpired;
   }
 
-  async challenge({action}: {action: string}): Promise<PushChallengeResponse | ErrorResponse> {
+  async challenge({action, token}: {action: string; token: string}): Promise<PushChallengeResponse | ErrorResponse> {
     const body = {action};
 
     const response = await fetch(`${this.baseUrl}/client/challenge/push`, {
       method: "POST",
-      headers: buildHeaders({tenantId: this.tenantId}),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
     const responseJson = await response.json();
+
+    handleTokenExpired({response: responseJson, onTokenExpired: this.onTokenExpired});
 
     return responseJson;
   }
 
-  async verify({challengeId}: {challengeId: string}): Promise<PushVerifyResponse | ErrorResponse> {
+  async verify({
+    challengeId,
+    token,
+  }: {
+    challengeId: string;
+    token: string;
+  }): Promise<PushVerifyResponse | ErrorResponse> {
     const body = {challengeId};
 
     const response = await fetch(`${this.baseUrl}/client/verify/push`, {
       method: "POST",
-      headers: buildHeaders({tenantId: this.tenantId}),
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
     });
 
     const responseJson = await response.json();
+
+    handleTokenExpired({response: responseJson, onTokenExpired: this.onTokenExpired});
 
     return responseJson;
   }

@@ -82,7 +82,7 @@ export class Authsignal {
     this.sms = new Sms({tenantId, baseUrl, onTokenExpired});
     this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired});
     this.qrCode = new QrCode({tenantId, baseUrl});
-    this.push = new Push({tenantId, baseUrl});
+    this.push = new Push({tenantId, baseUrl, onTokenExpired});
     this.whatsapp = new Whatsapp({tenantId, baseUrl, onTokenExpired});
   }
 
