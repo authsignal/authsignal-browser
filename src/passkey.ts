@@ -291,9 +291,7 @@ export class Passkey {
   }
 
   private async doesBrowserSupportConditionalCreate() {
-    // @ts-expect-error types are not up to date
     if (window.PublicKeyCredential && PublicKeyCredential.getClientCapabilities) {
-      // @ts-expect-error types are not up to date
       const capabilities = await PublicKeyCredential.getClientCapabilities();
       if (capabilities.conditionalCreate) {
         return true;
