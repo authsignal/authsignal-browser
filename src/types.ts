@@ -20,7 +20,7 @@ export type PopupLaunchOptions = BaseLaunchOptions & {
     /** Any valid CSS value for the `width` property. */
     width?: string;
     /**
-     * @deprecated The popup will automatically resize to fit the content.
+     * Set the height of the popup. If not set, the popup will automatically resize to fit the content.
      */
     height?: string;
     /**

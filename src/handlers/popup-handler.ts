@@ -16,21 +16,25 @@ type PopupShowInput = {
 
 type PopupHandlerOptions = {
   width?: string;
+  height?: string;
   isClosable?: boolean;
 };
 
 export class PopupHandler {
   private popup: A11yDialog | null = null;
+  private height: string | undefined;
 
-  constructor({width, isClosable}: PopupHandlerOptions) {
+  constructor({width, height, isClosable}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
       throw new Error("Multiple instances of Authsignal popup is not supported.");
     }
 
-    this.create({width, isClosable});
+    this.height = height;
+
+    this.create({width, height, isClosable});
   }
 
-  create({width = DEFAULT_WIDTH, isClosable = true}: PopupHandlerOptions) {
+  create({width = DEFAULT_WIDTH, height, isClosable = true}: PopupHandlerOptions) {
     const isWidthValidCSSValue = CSS.supports("width", width);
 
     let popupWidth = width;
@@ -103,7 +107,7 @@ export class PopupHandler {
         min-width: 100%;
         border-radius: inherit;
         max-height: 95vh;
-        height: ${INITIAL_HEIGHT};
+        height: ${height ?? INITIAL_HEIGHT};
       }
     `;
 
@@ -157,7 +161,10 @@ export class PopupHandler {
       dialogContent.appendChild(iframe);
     }
 
-    window.addEventListener("message", resizeIframe);
+    // Dynamic resizing if no height is set.
+    if (!this.height) {
+      window.addEventListener("message", resizeIframe);
+    }
 
     this.popup?.show();
   }
@@ -179,6 +186,10 @@ export class PopupHandler {
   }
 }
 
+/**
+ * Resize the iframe to the height of the pre-built UI's (#widget_container)
+ * @param event MessageEvent
+ */
 function resizeIframe(event: MessageEvent) {
   const iframeEl = document.querySelector<HTMLIFrameElement>(`#${IFRAME_ID}`);
 
