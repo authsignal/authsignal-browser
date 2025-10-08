@@ -154,7 +154,11 @@ export class Authsignal {
   private launchWithPopup(url: string, options: PopupLaunchOptions) {
     const {popupOptions} = options;
 
-    const popupHandler = new PopupHandler({width: popupOptions?.width, isClosable: popupOptions?.isClosable});
+    const popupHandler = new PopupHandler({
+      width: popupOptions?.width,
+      height: popupOptions?.height,
+      isClosable: popupOptions?.isClosable,
+    });
 
     const popupUrl = `${url}&mode=popup`;
 
