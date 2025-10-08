@@ -106,7 +106,7 @@ export class PopupHandler {
         width: 1px;
         min-width: 100%;
         border-radius: inherit;
-        max-height: 95vh;
+        max-height: ${height ? "100%" : "95vh"};
         height: ${height ?? INITIAL_HEIGHT};
       }
     `;
