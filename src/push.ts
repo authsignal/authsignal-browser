@@ -10,10 +10,6 @@ type PushOptions = {
   onTokenExpired?: () => void;
 };
 
-type ChallengeParams = {
-  action: string;
-};
-
 type VerifyParams = {
   challengeId: string;
 };
@@ -26,12 +22,12 @@ export class Push {
     this.api = new PushApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
-  async challenge({action}: ChallengeParams): Promise<AuthsignalResponse<PushChallengeResponse>> {
+  async challenge(): Promise<AuthsignalResponse<PushChallengeResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    const response = await this.api.challenge({action, token: this.cache.token});
+    const response = await this.api.challenge({token: this.cache.token});
 
     return handleApiResponse(response);
   }
