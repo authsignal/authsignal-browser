@@ -22,12 +22,11 @@ export class DigitalCredentialApiClient {
   async presentationOptions({
     challengeId,
     token,
-    mode,
   }: PresentationOptionsRequest): Promise<PresentationOptionsResponse | ErrorResponse> {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/digital-credential/presentation-options`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify({challengeId, mode}),
+      body: JSON.stringify({challengeId}),
     });
 
     const responseJson = await response.json();
@@ -40,14 +39,13 @@ export class DigitalCredentialApiClient {
   async verifyPresentation({
     token,
     data,
-    nonce,
     challengeId,
-    mode,
+    redirectUrl,
   }: VerifyPresentationRequest): Promise<VerifyPresentationResponse | ErrorResponse> {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/digital-credential/verify-presentation`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify({data, nonce, challengeId, mode}),
+      body: JSON.stringify({data, challengeId, redirectUrl}),
     });
 
     const responseJson = await response.json();

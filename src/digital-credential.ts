@@ -15,7 +15,7 @@ type DigitalCredentialOptions = {
 type RequestCredentialParams = {
   action?: string;
   token?: string;
-  mode?: "sdc" | "idv";
+  redirectUrl?: string;
 };
 
 type RequestCredentialResponse = {
@@ -23,6 +23,8 @@ type RequestCredentialResponse = {
   token?: string;
   username?: string;
   userId?: string;
+  url?: string;
+  requireUserVerification?: boolean;
 };
 
 export class DigitalCredential {
@@ -47,7 +49,6 @@ export class DigitalCredential {
     const optionsResponse = await this.api.presentationOptions({
       token: params?.token || undefined,
       challengeId: challengeResponse?.challengeId,
-      mode: params?.mode,
     });
 
     if ("error" in optionsResponse) {
@@ -56,13 +57,7 @@ export class DigitalCredential {
 
     const {dcapiOptions, challengeId} = optionsResponse;
 
-    let credentialResponse;
-
-    if (params?.mode === "sdc") {
-      credentialResponse = await navigator.credentials.get(dcapiOptions);
-    } else {
-      credentialResponse = await requestCredentials(dcapiOptions);
-    }
+    const credentialResponse = await requestCredentials(dcapiOptions);
 
     if (!credentialResponse) {
       throw new Error("No credential was provided");
@@ -71,9 +66,8 @@ export class DigitalCredential {
     const verifyResponse = await this.api.verifyPresentation({
       token: params?.token || undefined,
       data: credentialResponse,
-      nonce: dcapiOptions.digital?.requests?.[0]?.data?.nonce,
-      mode: params?.mode,
       challengeId,
+      redirectUrl: params?.redirectUrl,
     });
 
     if ("error" in verifyResponse) {
@@ -90,6 +84,8 @@ export class DigitalCredential {
         token: verifyResponse.accessToken,
         username: verifyResponse.username,
         userId: verifyResponse.userId,
+        requireUserVerification: verifyResponse.requireUserVerification,
+        url: verifyResponse.url,
       },
     };
   }

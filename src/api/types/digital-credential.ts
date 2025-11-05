@@ -14,9 +14,8 @@ export type VerifyPresentationRequest = {
   token?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
-  nonce: string;
   challengeId: string;
-  mode?: "sdc" | "idv";
+  redirectUrl?: string;
 };
 
 export type VerifyPresentationResponse = {
@@ -24,4 +23,6 @@ export type VerifyPresentationResponse = {
   accessToken?: string;
   username?: string;
   userId?: string;
+  url?: string;
+  requireUserVerification?: boolean;
 };
