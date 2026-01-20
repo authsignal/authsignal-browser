@@ -8,6 +8,7 @@ type WhatsappOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type VerifyParams = {
@@ -17,8 +18,10 @@ type VerifyParams = {
 export class Whatsapp {
   private api: WhatsappApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: WhatsappOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: WhatsappOptions) {
+    this.enableLogging = enableLogging;
     this.api = new WhatsappApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
@@ -29,7 +32,7 @@ export class Whatsapp {
 
     const response = await this.api.challenge({token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
@@ -43,8 +46,6 @@ export class Whatsapp {
       this.cache.token = response.accessToken;
     }
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 }
-
-

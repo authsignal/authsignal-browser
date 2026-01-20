@@ -1,18 +1,19 @@
-import {ErrorResponse} from "./api/types/shared";
+import {ErrorCode} from "./types";
 
 export class TokenCache {
   public token: string | null = null;
   public static shared = new TokenCache();
 
-  handleTokenNotSetError(): ErrorResponse {
-    const error = "A token has not been set. Call 'setToken' first.";
-    const errorCode = "TOKEN_NOT_SET";
+  handleTokenNotSetError() {
+    const errorCode = ErrorCode.token_not_set;
+    const errorDescription = "A token has not been set. Call 'setToken' first.";
 
-    console.error(`Error: ${error}`);
+    console.error(`Error: ${errorDescription}`);
 
     return {
       error: errorCode,
-      errorDescription: error,
+      errorCode,
+      errorDescription,
     };
   }
 }

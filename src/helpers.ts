@@ -41,24 +41,48 @@ export function getCookie(name: string) {
   );
 }
 
-export function handleErrorResponse(errorResponse: ErrorResponse) {
-  const error = errorResponse.errorDescription ?? errorResponse.error;
+type HandleErrorResponseParams = {
+  errorResponse: ErrorResponse;
+  enableLogging: boolean;
+};
 
-  console.error(error);
+export function handleErrorResponse({errorResponse, enableLogging}: HandleErrorResponseParams) {
+  if (enableLogging) {
+    console.error(
+      `[Authsignal] ${errorResponse.errorCode}${
+        errorResponse.errorDescription ? `: ${errorResponse.errorDescription}` : ""
+      }`
+    );
+  }
+
+  const error = errorResponse.errorDescription ?? errorResponse.error;
 
   return {
     error,
+    errorCode: errorResponse.errorCode,
+    errorDescription: errorResponse.errorDescription,
   };
 }
 
-export function handleApiResponse<T>(response: ErrorResponse | T) {
+type HandleApiResponseParams<T> = {
+  response: ErrorResponse | T;
+  enableLogging: boolean;
+};
+
+export function handleApiResponse<T>({response, enableLogging}: HandleApiResponseParams<T>) {
   if (response && typeof response === "object" && "error" in response) {
     const error = response.errorDescription ?? response.error;
 
-    console.error(error);
+    if (enableLogging) {
+      console.error(
+        `[Authsignal] ${response.errorCode}${response.errorDescription ? `: ${response.errorDescription}` : ""}`
+      );
+    }
 
     return {
       error,
+      errorCode: response.errorCode,
+      errorDescription: response.errorDescription,
     };
   } else if (
     response &&
@@ -76,7 +100,7 @@ export function handleApiResponse<T>(response: ErrorResponse | T) {
     };
   } else {
     return {
-      data: response,
+      data: response as T,
     };
   }
 }

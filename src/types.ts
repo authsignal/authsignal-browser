@@ -47,10 +47,7 @@ export type AuthsignalOptions = {
    */
   cookieDomain?: string;
   /**
-   * Tracking host (where API calls will be sent). If not set,
-   * we'd try to do the best to "guess" it. Last resort is t.authsignal.com.
-   *
-   * Though this parameter is not required, it's highly recommended to set is explicitly
+   * @deprecated - This parameter is no longer used.
    */
   trackingHost?: string;
 
@@ -61,6 +58,8 @@ export type AuthsignalOptions = {
   baseUrl?: string;
   tenantId: string;
   onTokenExpired?: () => void;
+
+  enableLogging?: boolean;
 };
 
 export enum AuthsignalWindowMessage {
@@ -76,9 +75,22 @@ export type TokenPayload = {
   token?: string;
 };
 
+export enum ErrorCode {
+  token_not_set = "token_not_set",
+  expired_token = "expired_token",
+  network_error = "network_error",
+  too_many_requests = "too_many_requests",
+  invalid_credential = "invalid_credential",
+}
+
 export type AuthsignalResponse<T> = {
-  error?: string;
   data?: T;
+  errorCode?: ErrorCode;
+  errorDescription?: string;
+  /**
+   * @deprecated Use errorCode and errorDescription instead
+   */
+  error?: string;
 };
 
 export type VerifyResponse = Omit<ApiVerifyResponse, "accessToken"> & {

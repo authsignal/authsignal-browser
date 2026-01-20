@@ -8,6 +8,7 @@ import {WebSocketQrHandler} from "./qr-code/websocket-qr-handler";
 type QrCodeOptions = {
   baseUrl: string;
   tenantId: string;
+  enableLogging: boolean;
 };
 
 export type ChallengeParams = {
@@ -31,10 +32,12 @@ export class QrCode {
   private handler: QrHandler | null = null;
   private baseUrl: string;
   private tenantId: string;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId}: QrCodeOptions) {
+  constructor({baseUrl, tenantId, enableLogging}: QrCodeOptions) {
     this.baseUrl = baseUrl;
     this.tenantId = tenantId;
+    this.enableLogging = enableLogging;
   }
 
   async challenge(params: ChallengeParams): Promise<AuthsignalResponse<QrCodeChallengeResponse>> {
@@ -45,9 +48,17 @@ export class QrCode {
     }
 
     if (polling) {
-      this.handler = new RestQrHandler({baseUrl: this.baseUrl, tenantId: this.tenantId});
+      this.handler = new RestQrHandler({
+        baseUrl: this.baseUrl,
+        tenantId: this.tenantId,
+        enableLogging: this.enableLogging,
+      });
     } else {
-      this.handler = new WebSocketQrHandler({baseUrl: this.baseUrl, tenantId: this.tenantId});
+      this.handler = new WebSocketQrHandler({
+        baseUrl: this.baseUrl,
+        tenantId: this.tenantId,
+        enableLogging: this.enableLogging,
+      });
     }
 
     return this.handler.challenge(challengeParams);

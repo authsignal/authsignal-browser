@@ -8,6 +8,7 @@ type SmsOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type EnrollParams = {
@@ -21,8 +22,10 @@ type VerifyParams = {
 export class Sms {
   private api: SmsApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: SmsOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: SmsOptions) {
+    this.enableLogging = enableLogging;
     this.api = new SmsApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
@@ -33,7 +36,7 @@ export class Sms {
 
     const response = await this.api.enroll({token: this.cache.token, phoneNumber});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async challenge(): Promise<AuthsignalResponse<ChallengeResponse>> {
@@ -43,7 +46,7 @@ export class Sms {
 
     const response = await this.api.challenge({token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
@@ -57,6 +60,6 @@ export class Sms {
       this.cache.token = response.accessToken;
     }
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 }

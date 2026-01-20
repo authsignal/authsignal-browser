@@ -8,6 +8,7 @@ type PushOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type ChallengeParams = {
@@ -21,8 +22,10 @@ type VerifyParams = {
 export class Push {
   private api: PushApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: PushOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: PushOptions) {
+    this.enableLogging = enableLogging;
     this.api = new PushApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
@@ -33,7 +36,7 @@ export class Push {
 
     const response = await this.api.challenge({action, token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async verify({challengeId}: VerifyParams): Promise<AuthsignalResponse<PushVerifyResponse>> {
@@ -43,6 +46,6 @@ export class Push {
 
     const response = await this.api.verify({challengeId, token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 }
