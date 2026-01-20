@@ -80,12 +80,12 @@ export enum ErrorCode {
   expired_token = "expired_token",
   network_error = "network_error",
   too_many_requests = "too_many_requests",
+  invalid_credential = "invalid_credential",
 }
 
 export type AuthsignalResponse<T> = {
   data?: T;
-  // eslint-disable-next-line @typescript-eslint/ban-types -- This is a valid use case for an empty object
-  errorCode?: ErrorCode | (string & {});
+  errorCode?: ErrorCode;
   errorDescription?: string;
   /**
    * @deprecated Use errorCode and errorDescription instead

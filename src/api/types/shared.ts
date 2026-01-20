@@ -31,8 +31,7 @@ export type ErrorResponse = {
    * @deprecated Use errorCode and errorDescription instead
    */
   error?: string;
-  // eslint-disable-next-line @typescript-eslint/ban-types -- This is a valid use case for an empty object
-  errorCode?: ErrorCode | (string & {});
+  errorCode?: ErrorCode;
   errorDescription?: string | undefined;
 };
 
