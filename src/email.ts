@@ -8,6 +8,7 @@ type EmailOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type EnrollParams = {
@@ -21,8 +22,10 @@ type VerifyParams = {
 export class Email {
   private api: EmailApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: EmailOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: EmailOptions) {
+    this.enableLogging = enableLogging;
     this.api = new EmailApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
@@ -33,7 +36,7 @@ export class Email {
 
     const response = await this.api.enroll({token: this.cache.token, email});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async challenge(): Promise<AuthsignalResponse<ChallengeResponse>> {
@@ -43,7 +46,7 @@ export class Email {
 
     const response = await this.api.challenge({token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
@@ -57,6 +60,6 @@ export class Email {
       this.cache.token = response.accessToken;
     }
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 }

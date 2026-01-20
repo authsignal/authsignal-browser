@@ -8,6 +8,7 @@ type EmailMagicLinkOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type EnrollParams = {
@@ -17,8 +18,10 @@ type EnrollParams = {
 export class EmailMagicLink {
   private api: EmailMagicLinkApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: EmailMagicLinkOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: EmailMagicLinkOptions) {
+    this.enableLogging = enableLogging;
     this.api = new EmailMagicLinkApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
@@ -29,7 +32,7 @@ export class EmailMagicLink {
 
     const response = await this.api.enroll({token: this.cache.token, email});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async challenge(): Promise<AuthsignalResponse<ChallengeResponse>> {
@@ -39,7 +42,7 @@ export class EmailMagicLink {
 
     const response = await this.api.challenge({token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async checkVerificationStatus(): Promise<AuthsignalResponse<VerifyResponse>> {
@@ -53,6 +56,6 @@ export class EmailMagicLink {
       this.cache.token = response.accessToken;
     }
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 }

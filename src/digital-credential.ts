@@ -10,6 +10,7 @@ type DigitalCredentialOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type RequestCredentialParams = {
@@ -30,9 +31,11 @@ type RequestCredentialResponse = {
 export class DigitalCredential {
   public api: DigitalCredentialApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: DigitalCredentialOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: DigitalCredentialOptions) {
     this.api = new DigitalCredentialApiClient({baseUrl, tenantId, onTokenExpired});
+    this.enableLogging = enableLogging;
   }
 
   async requestCredential(params?: RequestCredentialParams): Promise<AuthsignalResponse<RequestCredentialResponse>> {
@@ -43,7 +46,7 @@ export class DigitalCredential {
     const challengeResponse = params?.action ? await this.api.challenge(params.action) : null;
 
     if (challengeResponse && "error" in challengeResponse) {
-      return handleErrorResponse(challengeResponse);
+      return handleErrorResponse({errorResponse: challengeResponse, enableLogging: this.enableLogging});
     }
 
     const optionsResponse = await this.api.presentationOptions({
@@ -52,7 +55,7 @@ export class DigitalCredential {
     });
 
     if ("error" in optionsResponse) {
-      return handleErrorResponse(optionsResponse);
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
     }
 
     const {dcapiOptions, challengeId} = optionsResponse;
@@ -71,7 +74,7 @@ export class DigitalCredential {
     });
 
     if ("error" in verifyResponse) {
-      return handleErrorResponse(verifyResponse);
+      return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
     }
 
     if (verifyResponse.accessToken) {

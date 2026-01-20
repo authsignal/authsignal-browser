@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "1.12.0-alpha.1",
+  "version": "1.13.2-alpha.0",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -19,7 +19,11 @@
     "typescript"
   ],
   "license": "MIT",
-  "repository": "git://github.com/authsignal/authsignal-browser.git",
+  "repository": "https://github.com/authsignal/authsignal-browser",
+  "homepage": "https://github.com/authsignal/authsignal-browser#readme",
+  "bugs": {
+    "url": "https://github.com/authsignal/authsignal-browser/issues"
+  },
   "sideEffects": false,
   "scripts": {
     "typecheck": "tsc",
@@ -52,6 +56,5 @@
   },
   "files": [
     "dist"
-  ],
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  ]
 }

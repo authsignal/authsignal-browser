@@ -8,6 +8,7 @@ type TotpOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type VerifyParams = {
@@ -17,8 +18,10 @@ type VerifyParams = {
 export class Totp {
   private api: TotpApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: TotpOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: TotpOptions) {
+    this.enableLogging = enableLogging;
     this.api = new TotpApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
@@ -29,7 +32,7 @@ export class Totp {
 
     const response = await this.api.enroll({token: this.cache.token});
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 
   async verify({code}: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
@@ -43,6 +46,6 @@ export class Totp {
       this.cache.token = response.accessToken;
     }
 
-    return handleApiResponse(response);
+    return handleApiResponse({response, enableLogging: this.enableLogging});
   }
 }

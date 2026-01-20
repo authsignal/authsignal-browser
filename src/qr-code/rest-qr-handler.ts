@@ -16,9 +16,11 @@ export class RestQrHandler extends BaseQrHandler {
   private refreshTimeout?: NodeJS.Timeout;
   private currentChallengeParams?: ChallengeParams;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId}: {baseUrl: string; tenantId: string}) {
+  constructor({baseUrl, tenantId, enableLogging}: {baseUrl: string; tenantId: string; enableLogging: boolean}) {
     super();
+    this.enableLogging = enableLogging;
     this.api = new QrCodeApiClient({baseUrl, tenantId});
   }
 
@@ -28,7 +30,7 @@ export class RestQrHandler extends BaseQrHandler {
       action: params.action,
       custom: params.custom,
     });
-    const result = handleApiResponse(response);
+    const result = handleApiResponse({response, enableLogging: this.enableLogging});
 
     if (result.data) {
       this.currentChallengeParams = params;
@@ -73,7 +75,7 @@ export class RestQrHandler extends BaseQrHandler {
       action: this.currentChallengeParams.action,
       custom: custom || this.currentChallengeParams.custom,
     });
-    const result = handleApiResponse(response);
+    const result = handleApiResponse({response, enableLogging: this.enableLogging});
 
     if (result.data) {
       this.clearPolling();
@@ -144,7 +146,7 @@ export class RestQrHandler extends BaseQrHandler {
     pollInterval: number;
   }): Promise<void> {
     const response = await this.api.challenge({token: this.cache.token || undefined, action, custom});
-    const result = handleApiResponse(response);
+    const result = handleApiResponse({response, enableLogging: this.enableLogging});
 
     if (result.data) {
       this.clearPolling();
@@ -174,7 +176,7 @@ export class RestQrHandler extends BaseQrHandler {
   }): void {
     this.pollingInterval = setInterval(async () => {
       const response = await this.api.verify({challengeId, deviceCode});
-      const result = handleApiResponse(response);
+      const result = handleApiResponse({response, enableLogging: this.enableLogging});
 
       if (result.data) {
         if (result.data.isVerified) {

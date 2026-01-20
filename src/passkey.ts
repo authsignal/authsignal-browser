@@ -17,6 +17,7 @@ type PasskeyOptions = {
   tenantId: string;
   anonymousId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type SignUpParams = {
@@ -59,10 +60,12 @@ export class Passkey {
   private passkeyLocalStorageKey = "as_user_passkey_map";
   private anonymousId: string;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, anonymousId, onTokenExpired}: PasskeyOptions) {
+  constructor({baseUrl, tenantId, anonymousId, onTokenExpired, enableLogging}: PasskeyOptions) {
     this.api = new PasskeyApiClient({baseUrl, tenantId, onTokenExpired});
     this.anonymousId = anonymousId;
+    this.enableLogging = enableLogging;
   }
 
   async signUp({
@@ -96,7 +99,7 @@ export class Passkey {
     const optionsResponse = await this.api.registrationOptions(optionsInput);
 
     if ("error" in optionsResponse) {
-      return handleErrorResponse(optionsResponse);
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
     }
 
     try {
@@ -111,7 +114,7 @@ export class Passkey {
       });
 
       if ("error" in addAuthenticatorResponse) {
-        return handleErrorResponse(addAuthenticatorResponse);
+        return handleErrorResponse({errorResponse: addAuthenticatorResponse, enableLogging: this.enableLogging});
       }
 
       if (addAuthenticatorResponse.isVerified) {
@@ -165,7 +168,7 @@ export class Passkey {
     if (challengeResponse && "error" in challengeResponse) {
       autofillRequestPending = false;
 
-      return handleErrorResponse(challengeResponse);
+      return handleErrorResponse({errorResponse: challengeResponse, enableLogging: this.enableLogging});
     }
 
     const optionsResponse =
@@ -180,7 +183,7 @@ export class Passkey {
     if ("error" in optionsResponse) {
       autofillRequestPending = false;
 
-      return handleErrorResponse(optionsResponse);
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
     }
 
     try {
@@ -204,7 +207,7 @@ export class Passkey {
       if ("error" in verifyResponse) {
         autofillRequestPending = false;
 
-        return handleErrorResponse(verifyResponse);
+        return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
       }
 
       if (verifyResponse.isVerified) {
@@ -291,9 +294,7 @@ export class Passkey {
   }
 
   private async doesBrowserSupportConditionalCreate() {
-    // @ts-expect-error types are not up to date
     if (window.PublicKeyCredential && PublicKeyCredential.getClientCapabilities) {
-      // @ts-expect-error types are not up to date
       const capabilities = await PublicKeyCredential.getClientCapabilities();
       if (capabilities.conditionalCreate) {
         return true;

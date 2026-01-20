@@ -8,9 +8,11 @@ import {TokenCache} from "../token-cache";
 export class WebSocketQrHandler extends BaseQrHandler {
   private wsClient: WebSocketClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId}: {baseUrl: string; tenantId: string}) {
+  constructor({baseUrl, tenantId, enableLogging}: {baseUrl: string; tenantId: string; enableLogging: boolean}) {
     super();
+    this.enableLogging = enableLogging;
     this.wsClient = new WebSocketClient({baseUrl, tenantId});
   }
 

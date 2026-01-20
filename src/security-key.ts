@@ -14,6 +14,7 @@ type SecurityKeyOptions = {
   baseUrl: string;
   tenantId: string;
   onTokenExpired?: () => void;
+  enableLogging: boolean;
 };
 
 type EnrollResponse = {
@@ -30,9 +31,11 @@ type VerifyResponse = {
 export class SecurityKey {
   public api: SecurityKeyApiClient;
   private cache = TokenCache.shared;
+  private enableLogging = false;
 
-  constructor({baseUrl, tenantId, onTokenExpired}: SecurityKeyOptions) {
+  constructor({baseUrl, tenantId, onTokenExpired, enableLogging}: SecurityKeyOptions) {
     this.api = new SecurityKeyApiClient({baseUrl, tenantId, onTokenExpired});
+    this.enableLogging = enableLogging;
   }
 
   async enroll(): Promise<AuthsignalResponse<EnrollResponse>> {
@@ -47,7 +50,7 @@ export class SecurityKey {
     const optionsResponse = await this.api.registrationOptions(optionsInput);
 
     if ("error" in optionsResponse) {
-      return handleErrorResponse(optionsResponse);
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
     }
 
     try {
@@ -59,7 +62,7 @@ export class SecurityKey {
       });
 
       if ("error" in addAuthenticatorResponse) {
-        return handleErrorResponse(addAuthenticatorResponse);
+        return handleErrorResponse({errorResponse: addAuthenticatorResponse, enableLogging: this.enableLogging});
       }
 
       if (addAuthenticatorResponse.accessToken) {
@@ -89,7 +92,7 @@ export class SecurityKey {
     });
 
     if ("error" in optionsResponse) {
-      return handleErrorResponse(optionsResponse);
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
     }
 
     try {
@@ -103,7 +106,7 @@ export class SecurityKey {
       });
 
       if ("error" in verifyResponse) {
-        return handleErrorResponse(verifyResponse);
+        return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
       }
 
       if (verifyResponse.accessToken) {
