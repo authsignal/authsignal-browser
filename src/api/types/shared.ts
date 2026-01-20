@@ -1,4 +1,5 @@
 import {CredentialDeviceType} from "@simplewebauthn/browser";
+import {ErrorCode} from "../../types";
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -26,10 +27,13 @@ export type VerifyResponse = {
 };
 
 export type ErrorResponse = {
-  error: string;
+  /**
+   * @deprecated Use errorCode and errorDescription instead
+   */
+  error?: string;
   // eslint-disable-next-line @typescript-eslint/ban-types -- This is a valid use case for an empty object
-  errorCode?: "expired_token" | (string & {});
-  errorDescription?: string;
+  errorCode?: ErrorCode | (string & {});
+  errorDescription?: string | undefined;
 };
 
 export enum VerificationMethod {

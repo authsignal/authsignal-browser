@@ -34,7 +34,7 @@ export class Authsignal {
   profilingId = "";
   cookieDomain = "";
   anonymousIdCookieName = "";
-
+  enableLogging = false;
   passkey: Passkey;
   totp: Totp;
   email: Email;
@@ -51,6 +51,7 @@ export class Authsignal {
     baseUrl = DEFAULT_BASE_URL,
     tenantId,
     onTokenExpired,
+    enableLogging = false,
   }: AuthsignalOptions) {
     this.cookieDomain = cookieDomain || getCookieDomain();
     this.anonymousIdCookieName = cookieName;
@@ -75,15 +76,23 @@ export class Authsignal {
       });
     }
 
-    this.passkey = new Passkey({tenantId, baseUrl, anonymousId: this.anonymousId, onTokenExpired});
-    this.totp = new Totp({tenantId, baseUrl, onTokenExpired});
-    this.email = new Email({tenantId, baseUrl, onTokenExpired});
-    this.emailML = new EmailMagicLink({tenantId, baseUrl, onTokenExpired});
-    this.sms = new Sms({tenantId, baseUrl, onTokenExpired});
-    this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired});
-    this.qrCode = new QrCode({tenantId, baseUrl});
-    this.push = new Push({tenantId, baseUrl, onTokenExpired});
-    this.whatsapp = new Whatsapp({tenantId, baseUrl, onTokenExpired});
+    this.enableLogging = enableLogging;
+
+    this.passkey = new Passkey({
+      tenantId,
+      baseUrl,
+      anonymousId: this.anonymousId,
+      onTokenExpired,
+      enableLogging: this.enableLogging,
+    });
+    this.totp = new Totp({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
+    this.email = new Email({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
+    this.emailML = new EmailMagicLink({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
+    this.sms = new Sms({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
+    this.securityKey = new SecurityKey({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
+    this.qrCode = new QrCode({tenantId, baseUrl, enableLogging: this.enableLogging});
+    this.push = new Push({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
+    this.whatsapp = new Whatsapp({tenantId, baseUrl, onTokenExpired, enableLogging: this.enableLogging});
   }
 
   setToken(token: string) {
