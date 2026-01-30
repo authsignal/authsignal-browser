@@ -1,7 +1,10 @@
 export type PresentationOptionsRequest = {
+  action?: string;
   token?: string;
+  anonymous?: boolean;
   challengeId?: string;
-  mode?: "sdc" | "idv";
+  documentTypes?: string[];
+  claims?: string[][];
 };
 
 export type PresentationOptionsResponse = {
@@ -25,4 +28,5 @@ export type VerifyPresentationResponse = {
   userId?: string;
   url?: string;
   requireUserVerification?: boolean;
+  claims?: Record<string, string>;
 };

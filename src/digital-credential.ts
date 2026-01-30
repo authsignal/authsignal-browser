@@ -13,19 +13,31 @@ type DigitalCredentialOptions = {
   enableLogging: boolean;
 };
 
-type RequestCredentialParams = {
+type VerifyParams = {
   action?: string;
   token?: string;
   redirectUrl?: string;
 };
 
-type RequestCredentialResponse = {
+type VerifyResponse = {
   isVerified: boolean;
   token?: string;
   username?: string;
   userId?: string;
   url?: string;
   requireUserVerification?: boolean;
+  claims?: Record<string, string>;
+};
+
+type VerifyClaimsParams = {
+  action?: string;
+  documentTypes?: string[];
+  claims?: string[][];
+};
+
+type VerifyClaimsResponse = {
+  isVerified: boolean;
+  claims?: Record<string, string>;
 };
 
 export class DigitalCredential {
@@ -38,7 +50,7 @@ export class DigitalCredential {
     this.enableLogging = enableLogging;
   }
 
-  async requestCredential(params?: RequestCredentialParams): Promise<AuthsignalResponse<RequestCredentialResponse>> {
+  async verify(params?: VerifyParams): Promise<AuthsignalResponse<VerifyResponse>> {
     if (!browserSupportsDigitalCredential()) {
       throw new Error("Digital Credential API is not supported in this browser");
     }
@@ -52,6 +64,7 @@ export class DigitalCredential {
     const optionsResponse = await this.api.presentationOptions({
       token: params?.token || undefined,
       challengeId: challengeResponse?.challengeId,
+      action: params?.action || undefined,
     });
 
     if ("error" in optionsResponse) {
@@ -89,6 +102,48 @@ export class DigitalCredential {
         userId: verifyResponse.userId,
         requireUserVerification: verifyResponse.requireUserVerification,
         url: verifyResponse.url,
+        claims: verifyResponse.claims,
+      },
+    };
+  }
+
+  async verifyClaims(params?: VerifyClaimsParams): Promise<AuthsignalResponse<VerifyClaimsResponse>> {
+    if (!browserSupportsDigitalCredential()) {
+      throw new Error("Digital Credential API is not supported in this browser");
+    }
+
+    const optionsResponse = await this.api.presentationOptions({
+      action: params?.action || undefined,
+      anonymous: true,
+      documentTypes: params?.documentTypes,
+      claims: params?.claims,
+    });
+
+    if ("error" in optionsResponse) {
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
+    }
+
+    const {dcapiOptions, challengeId} = optionsResponse;
+
+    const credentialResponse = await requestCredentials(dcapiOptions);
+
+    if (!credentialResponse) {
+      throw new Error("No credential was provided");
+    }
+
+    const verifyResponse = await this.api.verifyPresentation({
+      data: credentialResponse,
+      challengeId,
+    });
+
+    if ("error" in verifyResponse) {
+      return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
+    }
+
+    return {
+      data: {
+        isVerified: verifyResponse.isVerified,
+        claims: verifyResponse.claims,
       },
     };
   }

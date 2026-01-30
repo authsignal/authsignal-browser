@@ -20,13 +20,17 @@ export class DigitalCredentialApiClient {
   }
 
   async presentationOptions({
+    action,
     challengeId,
+    anonymous,
     token,
+    documentTypes,
+    claims,
   }: PresentationOptionsRequest): Promise<PresentationOptionsResponse | ErrorResponse> {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/digital-credential/presentation-options`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify({challengeId}),
+      body: JSON.stringify({action, challengeId, anonymous, documentTypes, claims}),
     });
 
     const responseJson = await response.json();
