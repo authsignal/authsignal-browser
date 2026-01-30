@@ -33,11 +33,14 @@ type VerifyClaimsParams = {
   action?: string;
   documentTypes?: string[];
   claims?: string[][];
+  redirectUrl?: string;
 };
 
 type VerifyClaimsResponse = {
   isVerified: boolean;
   claims?: Record<string, string>;
+  url?: string;
+  requireUserVerification?: boolean;
 };
 
 export class DigitalCredential {
@@ -134,6 +137,7 @@ export class DigitalCredential {
     const verifyResponse = await this.api.verifyPresentation({
       data: credentialResponse,
       challengeId,
+      redirectUrl: params?.redirectUrl,
     });
 
     if ("error" in verifyResponse) {
@@ -144,6 +148,8 @@ export class DigitalCredential {
       data: {
         isVerified: verifyResponse.isVerified,
         claims: verifyResponse.claims,
+        requireUserVerification: verifyResponse.requireUserVerification,
+        url: verifyResponse.url,
       },
     };
   }
