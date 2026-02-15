@@ -161,7 +161,7 @@ export class Authsignal {
   }
 
   private launchWithPopup(url: string, options: PopupLaunchOptions) {
-    const {popupOptions} = options;
+    const {popupOptions, onError} = options;
 
     const popupHandler = new PopupHandler({
       width: popupOptions?.width,
@@ -170,19 +170,26 @@ export class Authsignal {
     });
 
     const popupUrl = `${url}&mode=popup`;
+    const expectedOrigin = new URL(url).origin;
 
-    popupHandler.show({url: popupUrl});
+    popupHandler.show({url: popupUrl, expectedOrigin});
 
     return new Promise<TokenPayload>((resolve) => {
       let token: string | undefined = undefined;
 
       const onMessage = (event: MessageEvent) => {
+        if (event.origin !== expectedOrigin) return;
+
         let data: AuthsignalWindowMessageData | null = null;
 
         try {
           data = JSON.parse(event.data) as AuthsignalWindowMessageData;
         } catch {
           // Ignore if the event data is not valid JSON
+        }
+
+        if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_API_ERROR) {
+          onError?.({errorCode: data.errorCode, statusCode: data.statusCode});
         }
 
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
@@ -201,22 +208,29 @@ export class Authsignal {
   }
 
   private launchWithWindow(url: string, options: WindowLaunchOptions) {
-    const {windowOptions} = options;
+    const {windowOptions, onError} = options;
 
     const windowHandler = new WindowHandler();
 
     const windowUrl = `${url}&mode=popup`;
+    const expectedOrigin = new URL(url).origin;
 
     windowHandler.show({url: windowUrl, width: windowOptions?.width, height: windowOptions?.height});
 
     return new Promise<TokenPayload>((resolve) => {
       const onMessage = (event: MessageEvent) => {
+        if (event.origin !== expectedOrigin) return;
+
         let data: AuthsignalWindowMessageData | null = null;
 
         try {
           data = JSON.parse(event.data) as AuthsignalWindowMessageData;
         } catch {
           // Ignore if the event data is not valid JSON
+        }
+
+        if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_API_ERROR) {
+          onError?.({errorCode: data.errorCode, statusCode: data.statusCode});
         }
 
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {

@@ -12,6 +12,7 @@ const INITIAL_HEIGHT = "384px";
 
 type PopupShowInput = {
   url: string;
+  expectedOrigin: string;
 };
 
 type PopupHandlerOptions = {
@@ -23,6 +24,7 @@ type PopupHandlerOptions = {
 export class PopupHandler {
   private popup: A11yDialog | null = null;
   private height: string | undefined;
+  private resizeListener: ((event: MessageEvent) => void) | null = null;
 
   constructor({width, height, isClosable}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
@@ -138,10 +140,13 @@ export class PopupHandler {
       document.head.removeChild(styleEl);
     }
 
-    window.removeEventListener("message", resizeIframe);
+    if (this.resizeListener) {
+      window.removeEventListener("message", this.resizeListener);
+      this.resizeListener = null;
+    }
   }
 
-  show({url}: PopupShowInput) {
+  show({url, expectedOrigin}: PopupShowInput) {
     if (!this.popup) {
       throw new Error("Popup is not initialized");
     }
@@ -163,7 +168,12 @@ export class PopupHandler {
 
     // Dynamic resizing if no height is set.
     if (!this.height) {
-      window.addEventListener("message", resizeIframe);
+      this.resizeListener = (event: MessageEvent) => {
+        if (event.origin !== expectedOrigin) return;
+        resizeIframe(event);
+      };
+
+      window.addEventListener("message", this.resizeListener);
     }
 
     this.popup?.show();

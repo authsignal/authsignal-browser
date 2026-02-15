@@ -28,6 +28,10 @@ export type PopupLaunchOptions = BaseLaunchOptions & {
      */
     isClosable?: boolean;
   };
+  /**
+   * Called when an API error occurs in the pre-built UI.
+   */
+  onError?: (params: {errorCode?: string; statusCode?: number}) => void;
 };
 
 export type WindowLaunchOptions = BaseLaunchOptions & {
@@ -36,6 +40,10 @@ export type WindowLaunchOptions = BaseLaunchOptions & {
     width?: number;
     height?: number;
   };
+  /**
+   * Called when an API error occurs in the pre-built UI.
+   */
+  onError?: (params: {errorCode?: string; statusCode?: number}) => void;
 };
 
 export type LaunchOptions = RedirectLaunchOptions | PopupLaunchOptions | WindowLaunchOptions;
@@ -64,11 +72,14 @@ export type AuthsignalOptions = {
 
 export enum AuthsignalWindowMessage {
   AUTHSIGNAL_CLOSE_POPUP = "AUTHSIGNAL_CLOSE_POPUP",
+  AUTHSIGNAL_API_ERROR = "AUTHSIGNAL_API_ERROR",
 }
 
 export type AuthsignalWindowMessageData = {
   event: AuthsignalWindowMessage;
-  token: string;
+  token?: string;
+  errorCode?: string;
+  statusCode?: number;
 };
 
 export type TokenPayload = {
