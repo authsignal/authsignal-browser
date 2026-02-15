@@ -1,6 +1,6 @@
 {
   "name": "@authsignal/browser",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -55,6 +55,5 @@
   },
   "files": [
     "dist"
-  ],
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  ]
 }
