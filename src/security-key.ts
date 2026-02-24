@@ -3,6 +3,7 @@ import {
   startRegistration,
   AuthenticationResponseJSON,
   RegistrationResponseJSON,
+  PublicKeyCredentialHint,
 } from "@simplewebauthn/browser";
 
 import {TokenCache} from "./token-cache";
@@ -38,7 +39,7 @@ export class SecurityKey {
     this.enableLogging = enableLogging;
   }
 
-  async enroll(): Promise<AuthsignalResponse<EnrollResponse>> {
+  async enroll({hints}: {hints?: PublicKeyCredentialHint[]} = {}): Promise<AuthsignalResponse<EnrollResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
@@ -54,7 +55,9 @@ export class SecurityKey {
     }
 
     try {
-      const registrationResponse = await startRegistration({optionsJSON: optionsResponse});
+      const optionsJSON = hints ? {...optionsResponse, hints} : optionsResponse;
+
+      const registrationResponse = await startRegistration({optionsJSON});
 
       const addAuthenticatorResponse = await this.api.addAuthenticator({
         registrationCredential: registrationResponse,
