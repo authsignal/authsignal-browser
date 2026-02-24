@@ -4,6 +4,7 @@ import {
   AuthenticationResponseJSON,
   RegistrationResponseJSON,
   AuthenticatorAttachment,
+  PublicKeyCredentialHint,
 } from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api/passkey-api-client";
@@ -25,6 +26,7 @@ type SignUpParams = {
   username?: string;
   displayName?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
+  hints?: PublicKeyCredentialHint[];
   useAutoRegister?: boolean;
   useCookies?: boolean;
 };
@@ -73,6 +75,7 @@ export class Passkey {
     displayName,
     token,
     authenticatorAttachment = "platform",
+    hints,
     useAutoRegister = false,
     useCookies = false,
   }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
@@ -103,7 +106,9 @@ export class Passkey {
     }
 
     try {
-      const registrationResponse = await startRegistration({optionsJSON: optionsResponse.options, useAutoRegister});
+      const optionsJSON = hints ? {...optionsResponse.options, hints} : optionsResponse.options;
+
+      const registrationResponse = await startRegistration({optionsJSON, useAutoRegister});
 
       const addAuthenticatorResponse = await this.api.addAuthenticator({
         registrationCredential: registrationResponse,
