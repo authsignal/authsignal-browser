@@ -148,7 +148,6 @@ export class PopupHandler {
         opacity: 1;
       }
 
-
       @media (prefers-reduced-motion: reduce) {
         #${OVERLAY_ID},
         #${CONTENT_ID},
