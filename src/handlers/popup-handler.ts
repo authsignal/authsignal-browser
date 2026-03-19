@@ -1,4 +1,5 @@
 import A11yDialog, {A11yDialogEvent} from "a11y-dialog";
+import {AuthsignalWindowMessage} from "../types";
 
 const CONTAINER_ID = "__authsignal-popup-container";
 const CONTENT_ID = "__authsignal-popup-content";
@@ -25,6 +26,7 @@ export class PopupHandler {
   private popup: A11yDialog | null = null;
   private height: string | undefined;
   private resizeListener: ((event: MessageEvent) => void) | null = null;
+  private iframeReady = false;
 
   constructor({width, height, isClosable}: PopupHandlerOptions) {
     if (document.querySelector(`#${CONTAINER_ID}`)) {
@@ -93,6 +95,18 @@ export class PopupHandler {
 
       #${OVERLAY_ID} {
         background-color: rgba(0, 0, 0, 0.18);
+        opacity: 0;
+        transition: opacity 150ms ease-out;
+      }
+
+      #${CONTAINER_ID}.as-popup-visible #${OVERLAY_ID} {
+        opacity: 1;
+      }
+
+      #${CONTAINER_ID}.as-popup-closing #${OVERLAY_ID} {
+        opacity: 0;
+        transition-duration: 120ms;
+        transition-timing-function: ease-in;
       }
 
       #${CONTENT_ID} {
@@ -101,7 +115,23 @@ export class PopupHandler {
         position: relative;
         background-color: transparent;
         border-radius: 8px;
+        overflow: hidden;
         width: ${popupWidth};
+        opacity: 0;
+        transform: scale(0.95);
+        transition: opacity 150ms ease-out, transform 150ms ease-out;
+      }
+
+      #${CONTAINER_ID}.as-popup-visible #${CONTENT_ID} {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      #${CONTAINER_ID}.as-popup-closing #${CONTENT_ID} {
+        opacity: 0;
+        transform: scale(0.95);
+        transition-duration: 120ms;
+        transition-timing-function: ease-in;
       }
 
       #${CONTENT_ID} iframe {
@@ -110,6 +140,21 @@ export class PopupHandler {
         border-radius: inherit;
         max-height: ${height ? "100%" : "95vh"};
         height: ${height ?? INITIAL_HEIGHT};
+        opacity: 0;
+        transition: opacity 200ms ease-out;
+      }
+
+      #${CONTENT_ID} iframe.as-iframe-ready {
+        opacity: 1;
+      }
+
+
+      @media (prefers-reduced-motion: reduce) {
+        #${OVERLAY_ID},
+        #${CONTENT_ID},
+        #${CONTENT_ID} iframe {
+          transition: none !important;
+        }
       }
     `;
 
@@ -160,23 +205,78 @@ export class PopupHandler {
     iframe.setAttribute("frameborder", "0");
     iframe.setAttribute("allow", "publickey-credentials-get *; publickey-credentials-create *; clipboard-write");
 
+    // Disable scrolling in dynamic height mode — the iframe resizes to fit
+    // content, so scrollbars are never needed and would flash during load.
+    if (!this.height) {
+      iframe.setAttribute("scrolling", "no");
+    }
+
     const dialogContent = document.querySelector(`#${CONTENT_ID}`);
 
     if (dialogContent) {
       dialogContent.appendChild(iframe);
     }
 
+    this.popup?.show();
+
+    const container = document.querySelector(`#${CONTAINER_ID}`);
+
+    const triggerOpenAnimation = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          container?.classList.add("as-popup-visible");
+        });
+      });
+    };
+
     // Dynamic resizing if no height is set.
     if (!this.height) {
+      const revealPopup = () => {
+        if (this.iframeReady) return;
+        this.iframeReady = true;
+        iframe.classList.add("as-iframe-ready");
+        triggerOpenAnimation();
+      };
+
+      // Fallback: reveal after 3s if AUTHSIGNAL_READY is never received
+      // (e.g. due to a network issue or unexpected error in the pre-built UI)
+      const fallbackTimer = setTimeout(revealPopup, 3000);
+
       this.resizeListener = (event: MessageEvent) => {
         if (event.origin !== expectedOrigin) return;
+
+        // Handle resize messages (raw objects with height property)
         resizeIframe(event);
+
+        // Wait for explicit ready signal from the pre-built UI
+        if (!this.iframeReady) {
+          let eventName: string | undefined;
+
+          try {
+            const data = JSON.parse(event.data);
+            eventName = data?.event;
+          } catch {
+            // Resize messages are raw objects, not JSON-stringified
+          }
+
+          if (eventName === AuthsignalWindowMessage.AUTHSIGNAL_READY) {
+            clearTimeout(fallbackTimer);
+            revealPopup();
+          }
+        }
       };
 
       window.addEventListener("message", this.resizeListener);
-    }
+    } else {
+      // Fixed height mode: animate in immediately, reveal iframe on load
+      triggerOpenAnimation();
 
-    this.popup?.show();
+      iframe.addEventListener("load", () => {
+        setTimeout(() => {
+          iframe.classList.add("as-iframe-ready");
+        }, 50);
+      });
+    }
   }
 
   close() {
@@ -184,7 +284,24 @@ export class PopupHandler {
       throw new Error("Popup is not initialized");
     }
 
-    this.popup.hide();
+    const container = document.querySelector(`#${CONTAINER_ID}`);
+    const content = document.querySelector(`#${CONTENT_ID}`);
+
+    container?.classList.remove("as-popup-visible");
+    container?.classList.add("as-popup-closing");
+
+    let hidden = false;
+
+    const hide = () => {
+      if (hidden) return;
+      hidden = true;
+      this.popup?.hide();
+    };
+
+    content?.addEventListener("transitionend", hide, {once: true});
+
+    // Fallback in case transitionend doesn't fire
+    setTimeout(hide, 150);
   }
 
   on(event: A11yDialogEvent, listener: EventListener) {
