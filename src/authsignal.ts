@@ -200,6 +200,7 @@ export class Authsignal {
       };
 
       popupHandler.on("hide", () => {
+        window.removeEventListener("message", onMessage);
         resolve({token});
       });
 
@@ -234,6 +235,7 @@ export class Authsignal {
         }
 
         if (data?.event === AuthsignalWindowMessage.AUTHSIGNAL_CLOSE_POPUP) {
+          window.removeEventListener("message", onMessage);
           windowHandler.close();
           resolve({token: data.token});
         }
