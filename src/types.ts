@@ -73,6 +73,7 @@ export type AuthsignalOptions = {
 export enum AuthsignalWindowMessage {
   AUTHSIGNAL_CLOSE_POPUP = "AUTHSIGNAL_CLOSE_POPUP",
   AUTHSIGNAL_API_ERROR = "AUTHSIGNAL_API_ERROR",
+  AUTHSIGNAL_READY = "AUTHSIGNAL_READY",
 }
 
 export type AuthsignalWindowMessageData = {
