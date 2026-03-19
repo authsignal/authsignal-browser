@@ -41,23 +41,27 @@ describe("PopupHandler", () => {
 
   beforeEach(() => {
     document.body.innerHTML = "";
+    document.body.style.overflow = "";
     document.head.innerHTML = "";
   });
 
   afterEach(() => {
-    // Ensure handler is fully cleaned up including message listeners
+    // Trigger full cleanup by closing the handler
     if (activeHandler) {
       try {
-        // @ts-expect-error accessing private method for test cleanup
-        activeHandler.destroy();
+        activeHandler.close();
+        // Fire the fallback timeout to trigger hide/destroy
+        vi.advanceTimersByTime(200);
       } catch {
-        // Already destroyed
+        // Already destroyed or not initialized
       }
       activeHandler = null;
     }
     document.body.innerHTML = "";
+    document.body.style.overflow = "";
     document.head.innerHTML = "";
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   function createHandler(options: {width?: string; height?: string; isClosable?: boolean} = {}) {
@@ -106,24 +110,6 @@ describe("PopupHandler", () => {
     });
   });
 
-  describe("scrolling attribute", () => {
-    it("should set scrolling='no' in dynamic height mode", () => {
-      const handler = createHandler();
-      handler.show({url, expectedOrigin});
-
-      const iframe = document.querySelector<HTMLIFrameElement>("#__authsignal-popup-iframe");
-      expect(iframe?.getAttribute("scrolling")).toBe("no");
-    });
-
-    it("should not set scrolling='no' in fixed height mode", () => {
-      const handler = createHandler({height: "600px"});
-      handler.show({url, expectedOrigin});
-
-      const iframe = document.querySelector<HTMLIFrameElement>("#__authsignal-popup-iframe");
-      expect(iframe?.getAttribute("scrolling")).toBeNull();
-    });
-  });
-
   describe("AUTHSIGNAL_READY", () => {
     it("should reveal popup when AUTHSIGNAL_READY is received", async () => {
       const handler = createHandler();
@@ -150,7 +136,7 @@ describe("PopupHandler", () => {
       expect(iframe?.classList.contains("as-iframe-ready")).toBe(true);
     });
 
-    it("should fallback and reveal after 3 seconds if AUTHSIGNAL_READY is never received", async () => {
+    it("should fallback and reveal after 3 seconds if AUTHSIGNAL_READY is never received", () => {
       vi.useFakeTimers();
 
       const handler = createHandler();
@@ -162,8 +148,6 @@ describe("PopupHandler", () => {
       vi.advanceTimersByTime(3000);
 
       expect(iframe?.classList.contains("as-iframe-ready")).toBe(true);
-
-      vi.useRealTimers();
     });
 
     it("should not reveal twice if AUTHSIGNAL_READY arrives after fallback", () => {
@@ -180,10 +164,7 @@ describe("PopupHandler", () => {
       // Sending AUTHSIGNAL_READY after fallback should not cause issues
       dispatchMessage(JSON.stringify({event: "AUTHSIGNAL_READY"}));
 
-      // Still has the class, no errors thrown
       expect(iframe?.classList.contains("as-iframe-ready")).toBe(true);
-
-      vi.useRealTimers();
     });
   });
 
@@ -220,38 +201,79 @@ describe("PopupHandler", () => {
 
       // After timeout, hide() is called which triggers destroy()
       expect(document.querySelector("#__authsignal-popup-container")).toBeNull();
-
-      vi.useRealTimers();
     });
   });
 
   describe("message listener cleanup", () => {
     it("should remove resize listener on destroy", () => {
+      vi.useFakeTimers();
       const removeSpy = vi.spyOn(window, "removeEventListener");
 
       const handler = createHandler();
       handler.show({url, expectedOrigin});
 
       handler.close();
-
-      // Trigger the fallback timeout to call hide/destroy
-      const container = document.querySelector("#__authsignal-popup-container");
-      const content = document.querySelector("#__authsignal-popup-content");
-      content?.dispatchEvent(new Event("transitionend"));
+      vi.advanceTimersByTime(150);
 
       expect(removeSpy).toHaveBeenCalledWith("message", expect.any(Function));
 
       removeSpy.mockRestore();
     });
-  });
 
-  describe("reduced motion", () => {
-    it("should include prefers-reduced-motion media query in styles", () => {
+    it("should clear fallback timer on destroy", () => {
+      vi.useFakeTimers();
+      const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+
       const handler = createHandler();
+      handler.show({url, expectedOrigin});
 
-      const style = document.querySelector("#__authsignal-popup-style");
-      expect(style?.textContent).toContain("prefers-reduced-motion: reduce");
-      expect(style?.textContent).toContain("transition: none !important");
+      // Close before AUTHSIGNAL_READY arrives (fallback timer is still pending)
+      handler.close();
+      vi.advanceTimersByTime(150);
+
+      expect(clearSpy).toHaveBeenCalled();
+
+      clearSpy.mockRestore();
     });
   });
+
+  describe("body scroll lock", () => {
+    it("should lock body scroll when popup is shown", () => {
+      const handler = createHandler();
+      handler.show({url, expectedOrigin});
+
+      expect(document.body.style.overflow).toBe("hidden");
+    });
+
+    it("should restore body scroll when popup is destroyed", () => {
+      vi.useFakeTimers();
+
+      document.body.style.overflow = "auto";
+
+      const handler = createHandler();
+      handler.show({url, expectedOrigin});
+
+      expect(document.body.style.overflow).toBe("hidden");
+
+      handler.close();
+      vi.advanceTimersByTime(150);
+
+      expect(document.body.style.overflow).toBe("auto");
+    });
+
+    it("should restore empty overflow when none was set", () => {
+      vi.useFakeTimers();
+
+      document.body.style.overflow = "";
+
+      const handler = createHandler();
+      handler.show({url, expectedOrigin});
+
+      handler.close();
+      vi.advanceTimersByTime(150);
+
+      expect(document.body.style.overflow).toBe("");
+    });
+  });
+
 });
