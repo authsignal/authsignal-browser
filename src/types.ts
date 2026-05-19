@@ -93,6 +93,7 @@ export enum ErrorCode {
   network_error = "network_error",
   too_many_requests = "too_many_requests",
   invalid_credential = "invalid_credential",
+  unknown_credential = "unknown_credential",
 }
 
 export type AuthsignalResponse<T> = {

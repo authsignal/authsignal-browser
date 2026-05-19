@@ -5,6 +5,7 @@ import {
   RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
 import {Authenticator} from "./shared";
+import {ErrorCode} from "../../types";
 
 export type RegistrationOptsRequest = {
   username?: string;
@@ -74,5 +75,6 @@ export type ChallengeResponse = {
 
 export type ErrorResponse = {
   error: string;
+  errorCode?: ErrorCode;
   errorDescription?: string;
 };

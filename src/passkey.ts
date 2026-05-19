@@ -10,8 +10,9 @@ import {
 import {PasskeyApiClient} from "./api/passkey-api-client";
 import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
-import {AuthsignalResponse} from "./types";
-import {Authenticator} from "./api/types/shared";
+import {signalAllAcceptedCredentials, signalUnknownCredential} from "./passkey-signal";
+import {AuthsignalResponse, ErrorCode} from "./types";
+import {Authenticator, VerificationMethod} from "./api/types/shared";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -29,6 +30,7 @@ type SignUpParams = {
   hints?: PublicKeyCredentialHint[];
   useAutoRegister?: boolean;
   useCookies?: boolean;
+  syncCredentials?: boolean;
 };
 
 type SignUpResponse = {
@@ -43,6 +45,7 @@ type SignInParams = {
   token?: string;
   useCookies?: boolean;
   onVerificationStarted?: () => unknown;
+  syncCredentials?: boolean;
 };
 
 type SignInResponse = {
@@ -53,6 +56,10 @@ type SignInResponse = {
   username?: string;
   displayName?: string;
   authenticationResponse?: AuthenticationResponseJSON;
+};
+
+type PublicKeyCredentialConstructorWithCapabilities = typeof PublicKeyCredential & {
+  getClientCapabilities?: () => Promise<{conditionalCreate?: boolean}>;
 };
 
 let autofillRequestPending = false;
@@ -78,6 +85,7 @@ export class Passkey {
     hints,
     useAutoRegister = false,
     useCookies = false,
+    syncCredentials = true,
   }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
     const userToken = token ?? this.cache.token;
 
@@ -133,6 +141,22 @@ export class Passkey {
         this.cache.token = addAuthenticatorResponse.accessToken;
       }
 
+      if (
+        syncCredentials &&
+        addAuthenticatorResponse.isVerified &&
+        (addAuthenticatorResponse.accessToken || useCookies)
+      ) {
+        const rpId = optionsResponse.options.rp.id ?? window.location.hostname;
+
+        void this.syncPasskeysWithCredentialManager({
+          rpId,
+          userHandle: optionsResponse.options.user.id,
+          credentialId: registrationResponse.id,
+          token: addAuthenticatorResponse.accessToken,
+          useCookies,
+        });
+      }
+
       return {
         data: {
           token: addAuthenticatorResponse.accessToken,
@@ -157,6 +181,8 @@ export class Passkey {
     if (params?.action && params.token) {
       throw new Error("action is not supported when providing a token");
     }
+
+    const syncCredentials = params?.syncCredentials ?? true;
 
     if (params?.autofill) {
       if (autofillRequestPending) {
@@ -212,6 +238,14 @@ export class Passkey {
       if ("error" in verifyResponse) {
         autofillRequestPending = false;
 
+        if (syncCredentials && verifyResponse.errorCode === ErrorCode.unknown_credential) {
+          const rpId = this.getAuthOptionsRpId(optionsResponse.options);
+
+          await signalUnknownCredential({rpId, credentialId: authenticationResponse.id}, this.enableLogging);
+
+          this.removeCredentialFromLocalCache(authenticationResponse.id);
+        }
+
         return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
       }
 
@@ -221,6 +255,25 @@ export class Passkey {
 
       if (verifyResponse.accessToken) {
         this.cache.token = verifyResponse.accessToken;
+      }
+
+      const userHandle = authenticationResponse.response.userHandle;
+
+      if (
+        syncCredentials &&
+        verifyResponse.isVerified &&
+        (verifyResponse.accessToken || params?.useCookies) &&
+        userHandle
+      ) {
+        const rpId = this.getAuthOptionsRpId(optionsResponse.options);
+
+        void this.syncPasskeysWithCredentialManager({
+          rpId,
+          userHandle,
+          credentialId: authenticationResponse.id,
+          token: verifyResponse.accessToken,
+          useCookies: params?.useCookies,
+        });
       }
 
       const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
@@ -299,13 +352,88 @@ export class Passkey {
   }
 
   private async doesBrowserSupportConditionalCreate() {
-    if (window.PublicKeyCredential && PublicKeyCredential.getClientCapabilities) {
-      const capabilities = await PublicKeyCredential.getClientCapabilities();
+    const publicKeyCredential = window.PublicKeyCredential as
+      | PublicKeyCredentialConstructorWithCapabilities
+      | undefined;
+
+    if (publicKeyCredential?.getClientCapabilities) {
+      const capabilities = await publicKeyCredential.getClientCapabilities();
       if (capabilities.conditionalCreate) {
         return true;
       }
     }
 
     return false;
+  }
+
+  private getAuthOptionsRpId(options: unknown): string {
+    const rpId = (options as {rpId?: string})?.rpId;
+    return rpId ?? window.location.hostname;
+  }
+
+  private async syncPasskeysWithCredentialManager({
+    rpId,
+    userHandle,
+    credentialId,
+    token,
+    useCookies,
+  }: {
+    rpId: string;
+    userHandle: string;
+    credentialId: string;
+    token?: string;
+    useCookies?: boolean;
+  }) {
+    try {
+      const result = await this.api.getAuthenticators({token, useCookies});
+
+      if (!Array.isArray(result)) {
+        if (this.enableLogging) {
+          console.warn("[Authsignal] Could not fetch authenticators for passkey sync", result);
+        }
+        return;
+      }
+
+      const credentialIds = result
+        .filter(
+          (a): a is Authenticator & {webauthnCredential: {credentialId: string}} =>
+            a.verificationMethod === VerificationMethod.PASSKEY && Boolean(a.webauthnCredential?.credentialId)
+        )
+        .map((a) => a.webauthnCredential.credentialId);
+
+      await signalAllAcceptedCredentials(
+        {rpId, userId: userHandle, credentialIds: Array.from(new Set([...credentialIds, credentialId]))},
+        this.enableLogging
+      );
+    } catch (e) {
+      if (this.enableLogging) {
+        console.warn("[Authsignal] Passkey sync failed", e);
+      }
+    }
+  }
+
+  private removeCredentialFromLocalCache(credentialId: string) {
+    const storedCredentials = localStorage.getItem(this.passkeyLocalStorageKey);
+    if (!storedCredentials) return;
+
+    let credentialsMap: Record<string, string[]>;
+    try {
+      credentialsMap = JSON.parse(storedCredentials);
+    } catch {
+      return;
+    }
+
+    let changed = false;
+    for (const userId of Object.keys(credentialsMap)) {
+      const filtered = credentialsMap[userId].filter((id) => id !== credentialId);
+      if (filtered.length !== credentialsMap[userId].length) {
+        credentialsMap[userId] = filtered;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      localStorage.setItem(this.passkeyLocalStorageKey, JSON.stringify(credentialsMap));
+    }
   }
 }

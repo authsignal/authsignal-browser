@@ -13,7 +13,7 @@ import {
   VerifyRequest,
   VerifyResponse,
 } from "./types/passkey";
-import {ApiClientOptions} from "./types/shared";
+import {ApiClientOptions, Authenticator} from "./types/shared";
 
 export class PasskeyApiClient {
   tenantId: string;
@@ -132,6 +132,26 @@ export class PasskeyApiClient {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
       body: JSON.stringify(body),
+      credentials: useCookies ? "include" : "same-origin",
+    });
+
+    const responseJson = await response.json();
+
+    handleTokenExpired({response: responseJson, onTokenExpired: this.onTokenExpired});
+
+    return responseJson;
+  }
+
+  async getAuthenticators({
+    token,
+    useCookies,
+  }: {
+    token?: string;
+    useCookies?: boolean;
+  }): Promise<Authenticator[] | ErrorResponse> {
+    const response = await fetch(`${this.baseUrl}/client/user-authenticators`, {
+      method: "GET",
+      headers: buildHeaders({token, tenantId: this.tenantId}),
       credentials: useCookies ? "include" : "same-origin",
     });
 
