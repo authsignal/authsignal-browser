@@ -13,8 +13,16 @@ export class PushApiClient {
     this.onTokenExpired = onTokenExpired;
   }
 
-  async challenge({action, token}: {action: string; token: string}): Promise<PushChallengeResponse | ErrorResponse> {
-    const body = {action};
+  async challenge({
+    action,
+    userAuthenticatorId,
+    token,
+  }: {
+    action: string;
+    userAuthenticatorId?: string;
+    token: string;
+  }): Promise<PushChallengeResponse | ErrorResponse> {
+    const body = {action, ...(userAuthenticatorId && {userAuthenticatorId})};
 
     const response = await fetch(`${this.baseUrl}/client/challenge/push`, {
       method: "POST",
