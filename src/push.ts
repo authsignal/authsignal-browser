@@ -13,6 +13,7 @@ type PushOptions = {
 
 type ChallengeParams = {
   action: string;
+  userAuthenticatorId?: string;
 };
 
 type VerifyParams = {
@@ -29,12 +30,12 @@ export class Push {
     this.api = new PushApiClient({baseUrl, tenantId, onTokenExpired});
   }
 
-  async challenge({action}: ChallengeParams): Promise<AuthsignalResponse<PushChallengeResponse>> {
+  async challenge({action, userAuthenticatorId}: ChallengeParams): Promise<AuthsignalResponse<PushChallengeResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
 
-    const response = await this.api.challenge({action, token: this.cache.token});
+    const response = await this.api.challenge({action, userAuthenticatorId, token: this.cache.token});
 
     return handleApiResponse({response, enableLogging: this.enableLogging});
   }

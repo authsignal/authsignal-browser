@@ -10,7 +10,9 @@ vi.mock("a11y-dialog", () => {
       shown = false;
       private listeners: Record<string, EventListener[]> = {};
 
-      constructor(_el: HTMLElement) {}
+      constructor(el: HTMLElement) {
+        void el;
+      }
 
       show() {
         this.shown = true;
@@ -275,5 +277,4 @@ describe("PopupHandler", () => {
       expect(document.body.style.overflow).toBe("");
     });
   });
-
 });
