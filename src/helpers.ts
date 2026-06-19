@@ -105,6 +105,10 @@ export function handleApiResponse<T>({response, enableLogging}: HandleApiRespons
   }
 }
 
+export function isImmediateMediationCredentialNotFoundError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "NotAllowedError";
+}
+
 export function handleWebAuthnError(error: unknown) {
   if (error instanceof WebAuthnError && error.code === "ERROR_INVALID_RP_ID") {
     const rpId = error.message?.match(/"([^"]*)"/)?.[1] || "";

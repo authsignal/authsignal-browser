@@ -94,6 +94,8 @@ export enum ErrorCode {
   too_many_requests = "too_many_requests",
   invalid_credential = "invalid_credential",
   unknown_credential = "unknown_credential",
+  credential_not_found = "credential_not_found",
+  immediate_mediation_not_supported = "immediate_mediation_not_supported",
 }
 
 export type AuthsignalResponse<T> = {

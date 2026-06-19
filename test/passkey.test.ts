@@ -50,13 +50,14 @@ function jsonResponse(body: unknown) {
   } as unknown as Response;
 }
 
-function authenticationOptionsResponse() {
+function authenticationOptionsResponse(options: Record<string, unknown> = {}) {
   return {
     challengeId: "challenge-id",
     options: {
       challenge: "challenge",
       rpId: "example.com",
       allowCredentials: [],
+      ...options,
     },
   };
 }
@@ -212,5 +213,108 @@ describe("Passkey passkey sync", () => {
 
     expect(result.data?.isVerified).toBe(true);
     expect(warnSpy).toHaveBeenCalledWith("[Authsignal] Passkey sync failed", expect.any(Error));
+  });
+});
+
+function setupImmediateApi({immediateGet = true}: {immediateGet?: boolean} = {}) {
+  const getClientCapabilities = vi.fn().mockResolvedValue({immediateGet});
+  const parseRequestOptionsFromJSON = vi.fn((options: unknown) => options);
+
+  Object.defineProperty(window, "PublicKeyCredential", {
+    configurable: true,
+    value: {
+      getClientCapabilities,
+      parseRequestOptionsFromJSON,
+      signalAllAcceptedCredentials: vi.fn().mockResolvedValue(undefined),
+      signalUnknownCredential: vi.fn().mockResolvedValue(undefined),
+    },
+  });
+
+  const credentialsGet = vi.fn();
+  Object.defineProperty(navigator, "credentials", {
+    configurable: true,
+    value: {get: credentialsGet},
+  });
+
+  return {getClientCapabilities, parseRequestOptionsFromJSON, credentialsGet};
+}
+
+describe("Passkey immediate UI mode", () => {
+  const originalPublicKeyCredential = window.PublicKeyCredential;
+
+  beforeEach(() => {
+    webAuthnMocks.startAuthentication.mockReset();
+    webAuthnMocks.startAuthentication.mockResolvedValue(authenticationResponse);
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+
+    Object.defineProperty(window, "PublicKeyCredential", {
+      configurable: true,
+      value: originalPublicKeyCredential,
+    });
+  });
+
+  it("signs in using immediate UI mode when a credential is available", async () => {
+    const fetchMock = setupFetch();
+    const {parseRequestOptionsFromJSON, credentialsGet} = setupImmediateApi();
+    credentialsGet.mockResolvedValue({toJSON: () => authenticationResponse});
+    const optionsResponse = authenticationOptionsResponse({
+      allowCredentials: [{id: "known-credential-id", type: "public-key"}],
+    });
+
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(optionsResponse))
+      .mockResolvedValueOnce(jsonResponse({isVerified: true, accessToken: "access-token", userId: "user-id"}));
+
+    const result = await createPasskey().signIn({
+      preferImmediatelyAvailableCredentials: true,
+      syncCredentials: false,
+    });
+
+    expect(result.data?.isVerified).toBe(true);
+    expect(result.data?.token).toBe("access-token");
+    expect(webAuthnMocks.startAuthentication).not.toHaveBeenCalled();
+    expect(parseRequestOptionsFromJSON).toHaveBeenCalledWith({...optionsResponse.options, allowCredentials: []});
+    expect(credentialsGet).toHaveBeenCalledWith(expect.objectContaining({uiMode: "immediate"}));
+    expect(credentialsGet.mock.calls[0][0]).not.toHaveProperty("mediation");
+  });
+
+  it("returns credential_not_found when no credential is immediately available", async () => {
+    const fetchMock = setupFetch();
+    const {credentialsGet} = setupImmediateApi();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    credentialsGet.mockRejectedValue(new DOMException("No credentials", "NotAllowedError"));
+
+    fetchMock.mockResolvedValueOnce(jsonResponse(authenticationOptionsResponse()));
+
+    const result = await createPasskey({enableLogging: true}).signIn({preferImmediatelyAvailableCredentials: true});
+
+    expect(result.errorCode).toBe(ErrorCode.credential_not_found);
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns immediate_mediation_not_supported when the browser lacks the capability", async () => {
+    const fetchMock = setupFetch();
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    setupImmediateApi({immediateGet: false});
+
+    const result = await createPasskey({enableLogging: true}).signIn({preferImmediatelyAvailableCredentials: true});
+
+    expect(result.errorCode).toBe(ErrorCode.immediate_mediation_not_supported);
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("throws when immediate UI mode is combined with autofill", async () => {
+    setupImmediateApi();
+
+    await expect(createPasskey().signIn({preferImmediatelyAvailableCredentials: true, autofill: true})).rejects.toThrow(
+      "autofill is not supported when using immediate UI mode"
+    );
   });
 });
