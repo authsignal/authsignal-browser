@@ -5,16 +5,14 @@ import {
   RegistrationResponseJSON,
   AuthenticatorAttachment,
   PublicKeyCredentialHint,
-  PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api/passkey-api-client";
 import {TokenCache} from "./token-cache";
-import {handleErrorResponse, handleWebAuthnError, isImmediateMediationCredentialNotFoundError} from "./helpers";
+import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {signalAllAcceptedCredentials, signalUnknownCredential} from "./passkey-signal";
 import {AuthsignalResponse, ErrorCode} from "./types";
 import {Authenticator, VerificationMethod} from "./api/types/shared";
-import {AuthenticationOptsResponse} from "./api/types/passkey";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -48,7 +46,6 @@ type SignInParams = {
   useCookies?: boolean;
   onVerificationStarted?: () => unknown;
   syncCredentials?: boolean;
-  preferImmediatelyAvailableCredentials?: boolean;
 };
 
 type SignInResponse = {
@@ -62,16 +59,7 @@ type SignInResponse = {
 };
 
 type PublicKeyCredentialConstructorWithCapabilities = typeof PublicKeyCredential & {
-  getClientCapabilities?: () => Promise<{conditionalCreate?: boolean; immediateGet?: boolean}>;
-  parseRequestOptionsFromJSON?: (options: PublicKeyCredentialRequestOptionsJSON) => PublicKeyCredentialRequestOptions;
-};
-
-type PublicKeyCredentialWithToJSON = PublicKeyCredential & {
-  toJSON: () => AuthenticationResponseJSON;
-};
-
-type ImmediateCredentialRequestOptions = CredentialRequestOptions & {
-  uiMode: "immediate";
+  getClientCapabilities?: () => Promise<{conditionalCreate?: boolean}>;
 };
 
 let autofillRequestPending = false;
@@ -186,8 +174,6 @@ export class Passkey {
   }
 
   async signIn(params?: SignInParams): Promise<AuthsignalResponse<SignInResponse>> {
-    const preferImmediatelyAvailableCredentials = Boolean(params?.preferImmediatelyAvailableCredentials);
-
     if (params?.token && params.autofill) {
       throw new Error("autofill is not supported when providing a token");
     }
@@ -196,18 +182,7 @@ export class Passkey {
       throw new Error("action is not supported when providing a token");
     }
 
-    if (preferImmediatelyAvailableCredentials && params?.autofill) {
-      throw new Error("autofill is not supported when using immediate UI mode");
-    }
-
     const syncCredentials = params?.syncCredentials ?? true;
-
-    if (preferImmediatelyAvailableCredentials && !(await this.doesBrowserSupportImmediateMediation())) {
-      return this.handleClientErrorResponse(
-        ErrorCode.immediate_mediation_not_supported,
-        "Immediate mediation is not supported by this browser."
-      );
-    }
 
     if (params?.autofill) {
       if (autofillRequestPending) {
@@ -243,29 +218,10 @@ export class Passkey {
     }
 
     try {
-      let authenticationResponse: AuthenticationResponseJSON;
-
-      if (preferImmediatelyAvailableCredentials) {
-        try {
-          authenticationResponse = await this.getImmediateMediationCredential(optionsResponse.options);
-        } catch (e) {
-          if (isImmediateMediationCredentialNotFoundError(e)) {
-            autofillRequestPending = false;
-
-            return this.handleClientErrorResponse(
-              ErrorCode.credential_not_found,
-              "No immediately available passkey credentials were found."
-            );
-          }
-
-          throw e;
-        }
-      } else {
-        authenticationResponse = await startAuthentication({
-          optionsJSON: optionsResponse.options,
-          useBrowserAutofill: params?.autofill,
-        });
-      }
+      const authenticationResponse = await startAuthentication({
+        optionsJSON: optionsResponse.options,
+        useBrowserAutofill: params?.autofill,
+      });
 
       if (params?.onVerificationStarted) {
         params.onVerificationStarted();
@@ -408,58 +364,6 @@ export class Passkey {
     }
 
     return false;
-  }
-
-  private async doesBrowserSupportImmediateMediation() {
-    const publicKeyCredential = window.PublicKeyCredential as
-      | PublicKeyCredentialConstructorWithCapabilities
-      | undefined;
-
-    if (publicKeyCredential?.getClientCapabilities) {
-      const capabilities = await publicKeyCredential.getClientCapabilities();
-      return Boolean(capabilities.immediateGet);
-    }
-
-    return false;
-  }
-
-  private async getImmediateMediationCredential(
-    optionsJSON: AuthenticationOptsResponse["options"]
-  ): Promise<AuthenticationResponseJSON> {
-    const publicKeyCredential = window.PublicKeyCredential as PublicKeyCredentialConstructorWithCapabilities;
-
-    if (!publicKeyCredential.parseRequestOptionsFromJSON) {
-      throw new Error("IMMEDIATE_MEDIATION_NOT_SUPPORTED");
-    }
-
-    const immediateOptionsJSON: PublicKeyCredentialRequestOptionsJSON = {
-      ...optionsJSON,
-      allowCredentials: [],
-    };
-
-    const publicKey = publicKeyCredential.parseRequestOptionsFromJSON(immediateOptionsJSON);
-
-    const credential = (await navigator.credentials.get({
-      publicKey,
-      uiMode: "immediate",
-    } as ImmediateCredentialRequestOptions)) as PublicKeyCredentialWithToJSON | null;
-
-    if (!credential) {
-      throw new DOMException("No immediately available credentials were found.", "NotAllowedError");
-    }
-
-    return credential.toJSON();
-  }
-
-  private handleClientErrorResponse(
-    errorCode: ErrorCode,
-    errorDescription: string
-  ): AuthsignalResponse<SignInResponse> {
-    return {
-      error: errorDescription,
-      errorCode,
-      errorDescription,
-    };
   }
 
   private getAuthOptionsRpId(options: unknown): string {
