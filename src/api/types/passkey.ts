@@ -2,6 +2,7 @@ import {
   AuthenticationResponseJSON,
   AuthenticatorAttachment,
   PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
 import {Authenticator} from "./shared";
@@ -24,7 +25,7 @@ export type AuthenticationOptsRequest = {
 };
 
 export type AuthenticationOptsResponse = {
-  options: PublicKeyCredentialCreationOptionsJSON;
+  options: PublicKeyCredentialRequestOptionsJSON;
   challengeId?: string;
 };
 
