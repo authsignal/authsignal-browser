@@ -70,8 +70,20 @@ export type ChallengeRequest = {
   useCookies?: boolean;
 };
 
+// SPC SPIKE: per-transaction payment data returned alongside the challenge when the
+// action has Secure Payment Confirmation enabled. Display-only `instrument` — never a PAN.
+export type SpcChallengeData = {
+  payeeName?: string;
+  payeeOrigin?: string;
+  amount: string; // decimal string, e.g. "42.00"
+  currency: string; // ISO-4217, e.g. "USD"
+  instrument: {displayName: string; icon: string};
+  credentialIds: string[];
+};
+
 export type ChallengeResponse = {
   challengeId: string;
+  spc?: SpcChallengeData; // SPC SPIKE
 };
 
 export type ErrorResponse = {

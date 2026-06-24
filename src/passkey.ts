@@ -343,6 +343,132 @@ export class Passkey {
     }
   }
 
+  // SPC SPIKE: Secure Payment Confirmation sign-in for a 3DS transaction.
+  // See authsignal-serverless/docs/rfc-secure-payment-confirmation-3ds.md (PR #2643).
+  //
+  // Unlike signIn(), this does NOT use startAuthentication()/navigator.credentials.get()
+  // — the SimpleWebAuthn browser package has no SPC support. SPC runs through the
+  // PaymentRequest API, which renders the native "Pay $X to <payee>" dialog before the
+  // biometric prompt and bakes the transaction into the assertion (type "payment.get").
+  // The resulting assertion is posted to the SAME verify endpoint as a normal passkey.
+  async signInWithPaymentConfirmation(params: {action: string}): Promise<AuthsignalResponse<SignInResponse>> {
+    const challengeResponse = await this.api.challenge({action: params.action});
+
+    if ("error" in challengeResponse) {
+      return handleErrorResponse({errorResponse: challengeResponse, enableLogging: this.enableLogging});
+    }
+
+    const {challengeId, spc} = challengeResponse;
+
+    if (!spc) {
+      throw new Error("SPC_NOT_ENABLED_FOR_ACTION");
+    }
+
+    const optionsResponse = await this.api.authenticationOptions({challengeId});
+
+    if ("error" in optionsResponse) {
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
+    }
+
+    // Graceful fallback: SPC is Chromium-only. On unsupported browsers fall back to the
+    // standard passkey ceremony so the 3DS challenge can still complete.
+    if (!(await this.isSpcAvailable())) {
+      return this.signIn({action: params.action});
+    }
+
+    const rpId = this.getAuthOptionsRpId(optionsResponse.options);
+    const {challenge} = optionsResponse.options;
+
+    try {
+      // 'secure-payment-confirmation' method data is loosely typed (PaymentMethodData.data: any).
+      const request = new PaymentRequest(
+        [
+          {
+            supportedMethods: "secure-payment-confirmation",
+            data: {
+              rpId,
+              challenge: base64UrlToBuffer(challenge),
+              credentialIds: spc.credentialIds.map(base64UrlToBuffer),
+              instrument: spc.instrument,
+              payeeName: spc.payeeName,
+              payeeOrigin: spc.payeeOrigin,
+              timeout: 60000,
+            },
+          },
+        ],
+        {total: {label: "Total", amount: {currency: spc.currency, value: spc.amount}}}
+      );
+
+      const paymentResponse = await request.show();
+      // The PaymentResponse carries the WebAuthn assertion in `details`.
+      const credential = paymentResponse.details as PublicKeyCredential;
+      await paymentResponse.complete("success");
+
+      const authenticationResponse = toAuthenticationResponseJSON(credential);
+
+      const verifyResponse = await this.api.verify({
+        authenticationCredential: authenticationResponse,
+        deviceId: this.anonymousId,
+        challengeId: optionsResponse.challengeId,
+      });
+
+      if ("error" in verifyResponse) {
+        return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
+      }
+
+      if (verifyResponse.accessToken) {
+        this.cache.token = verifyResponse.accessToken;
+      }
+
+      const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
+
+      return {
+        data: {
+          isVerified,
+          token,
+          userId,
+          userAuthenticatorId,
+          username,
+          displayName: userDisplayName,
+          authenticationResponse,
+        },
+      };
+    } catch (e) {
+      handleWebAuthnError(e);
+
+      throw e;
+    }
+  }
+
+  // SPC SPIKE: feature-detect Secure Payment Confirmation (Chromium-only).
+  private async isSpcAvailable(): Promise<boolean> {
+    if (typeof window === "undefined" || !("PaymentRequest" in window)) {
+      return false;
+    }
+
+    try {
+      const request = new PaymentRequest(
+        [
+          {
+            supportedMethods: "secure-payment-confirmation",
+            data: {
+              rpId: "example.com",
+              credentialIds: [new Uint8Array(1)],
+              challenge: new Uint8Array(1),
+              instrument: {displayName: "x", icon: "https://example.com/x.png"},
+              payeeName: "x",
+            },
+          },
+        ],
+        {total: {label: "x", amount: {currency: "USD", value: "0"}}}
+      );
+
+      return await request.canMakePayment();
+    } catch {
+      return false;
+    }
+  }
+
   async isAvailableOnDevice({userId}: {userId: string}) {
     if (!userId) {
       throw new Error("userId is required");
@@ -534,4 +660,49 @@ export class Passkey {
       localStorage.setItem(this.passkeyLocalStorageKey, JSON.stringify(credentialsMap));
     }
   }
+}
+
+// SPC SPIKE: decode a base64url string (as used in WebAuthn JSON options) to an ArrayBuffer.
+// The PaymentRequest `secure-payment-confirmation` data wants BufferSources, not strings.
+function base64UrlToBuffer(base64Url: string): ArrayBuffer {
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  const binary = atob(padded);
+  const buffer = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    buffer[i] = binary.charCodeAt(i);
+  }
+  return buffer.buffer;
+}
+
+// SPC SPIKE: encode an ArrayBuffer to base64url for the verify request body.
+function bufferToBase64Url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+// SPC SPIKE: normalise the PublicKeyCredential returned by PaymentRequest into the
+// AuthenticationResponseJSON shape our verify endpoint already accepts. (SimpleWebAuthn's
+// startAuthentication does this internally; with the PaymentRequest path we do it ourselves.)
+function toAuthenticationResponseJSON(credential: PublicKeyCredential): AuthenticationResponseJSON {
+  const assertion = credential.response as AuthenticatorAssertionResponse;
+
+  return {
+    id: credential.id,
+    rawId: bufferToBase64Url(credential.rawId),
+    type: "public-key",
+    clientExtensionResults: credential.getClientExtensionResults(),
+    authenticatorAttachment: (credential as unknown as {authenticatorAttachment?: AuthenticatorAttachment})
+      .authenticatorAttachment,
+    response: {
+      clientDataJSON: bufferToBase64Url(assertion.clientDataJSON),
+      authenticatorData: bufferToBase64Url(assertion.authenticatorData),
+      signature: bufferToBase64Url(assertion.signature),
+      userHandle: assertion.userHandle ? bufferToBase64Url(assertion.userHandle) : undefined,
+    },
+  };
 }
