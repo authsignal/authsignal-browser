@@ -31,10 +31,19 @@ export class PasskeyApiClient {
     username,
     authenticatorAttachment,
     useCookies,
+    securePaymentConfirmation,
+    instrumentDisplayName,
   }: {token: string} & RegistrationOptsRequest): Promise<RegistrationOptsResponse | ErrorResponse> {
     const body: RegistrationOptsRequest = Boolean(authenticatorAttachment)
       ? {username, authenticatorAttachment}
       : {username};
+
+    if (securePaymentConfirmation) {
+      body.securePaymentConfirmation = true;
+      if (instrumentDisplayName) {
+        body.instrumentDisplayName = instrumentDisplayName;
+      }
+    }
 
     const url = useCookies
       ? `${this.baseUrl}/client/user-authenticators/passkey/registration-options/web`
@@ -60,13 +69,14 @@ export class PasskeyApiClient {
     token,
     challengeId,
     useCookies,
+    securePaymentConfirmation,
   }: {
     token?: string;
   } & AuthenticationOptsRequest): Promise<AuthenticationOptsResponse | ErrorResponse> {
     const response = await fetch(`${this.baseUrl}/client/user-authenticators/passkey/authentication-options`, {
       method: "POST",
       headers: buildHeaders({token, tenantId: this.tenantId}),
-      body: JSON.stringify({challengeId}),
+      body: JSON.stringify({challengeId, ...(securePaymentConfirmation ? {securePaymentConfirmation} : {})}),
       credentials: useCookies ? "include" : "same-origin",
     });
 

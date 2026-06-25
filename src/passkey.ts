@@ -17,6 +17,13 @@ import {
   isImmediateMediationCredentialNotFoundError,
 } from "./helpers";
 import {signalAllAcceptedCredentials, signalUnknownCredential} from "./passkey-signal";
+import {
+  SpcPayment,
+  SpcRequestData,
+  isPaymentConfirmationAvailable,
+  runPaymentConfirmation,
+  toSpcRequestData,
+} from "./spc";
 import {AuthsignalResponse, ErrorCode} from "./types";
 import {Authenticator, VerificationMethod} from "./api/types/shared";
 import {AuthenticationOptsResponse} from "./api/types/passkey";
@@ -38,6 +45,12 @@ type SignUpParams = {
   useAutoRegister?: boolean;
   useCookies?: boolean;
   syncCredentials?: boolean;
+  // Mint a payment-capable (SPC) passkey usable in 3DS Secure Payment Confirmation. The user may
+  // hold both standard and SPC passkeys; on platforms without SPC enrolment support the caller
+  // should retry without this flag.
+  securePaymentConfirmation?: boolean;
+  // Instrument label persisted against the credential (e.g. "Visa ••1234"), shown in future SPC dialogs.
+  paymentInstrument?: {displayName: string};
 };
 
 type SignUpResponse = {
@@ -103,6 +116,8 @@ export class Passkey {
     useAutoRegister = false,
     useCookies = false,
     syncCredentials = true,
+    securePaymentConfirmation = false,
+    paymentInstrument,
   }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
     const userToken = token ?? this.cache.token;
 
@@ -122,6 +137,8 @@ export class Passkey {
       token: userToken,
       authenticatorAttachment,
       useCookies,
+      securePaymentConfirmation,
+      instrumentDisplayName: paymentInstrument?.displayName,
     };
 
     const optionsResponse = await this.api.registrationOptions(optionsInput);
@@ -340,6 +357,91 @@ export class Passkey {
       handleWebAuthnError(error);
 
       throw error;
+    }
+  }
+
+  // Feature-detect Secure Payment Confirmation. Use this to decide whether to attempt SPC before
+  // falling back to a standard passkey or OTP.
+  async isPaymentConfirmationAvailable(): Promise<boolean> {
+    return isPaymentConfirmationAvailable();
+  }
+
+  // Run only the SPC ceremony against request data you already hold (rpId, challenge, credential
+  // ids), e.g. delivered by an ACS in a 3DS ARes. Returns the assertion; verify it server-side.
+  async runPaymentConfirmation(
+    params: SpcRequestData & {payment: SpcPayment}
+  ): Promise<{authenticationResponse: AuthenticationResponseJSON}> {
+    const {payment, ...request} = params;
+    const authenticationResponse = await runPaymentConfirmation(request, payment);
+    return {authenticationResponse};
+  }
+
+  // First-party SPC sign-in: create the challenge, fetch the user-scoped options, run the ceremony,
+  // and verify. A user token is required (SPC needs explicit credential ids, so the server must know
+  // the user). Performs no fallback — on SPC failure the caller steps down to signIn() / OTP.
+  async signInWithPaymentConfirmation({token}: {token: string}): Promise<AuthsignalResponse<SignInResponse>> {
+    if (!token) {
+      return this.cache.handleTokenNotSetError();
+    }
+
+    // The token (from track) anchors the action and carries the server-set transaction, so we go
+    // straight to authentication options — no separate challenge call.
+    const optionsResponse = await this.api.authenticationOptions({token, securePaymentConfirmation: true});
+
+    if ("error" in optionsResponse) {
+      return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
+    }
+
+    // The transaction is set server-side (via track custom data) and returned here — the client
+    // never supplies the amount/payee, it only renders what the server issued.
+    if (!optionsResponse.payment) {
+      throw new Error(
+        "No payment transaction was set for this action (set amount/currency/payee via track custom data)"
+      );
+    }
+
+    try {
+      const requestData = toSpcRequestData(optionsResponse.options, optionsResponse.paymentInstruments);
+      const payment: SpcPayment = {
+        amount: optionsResponse.payment.amount ?? "",
+        currency: optionsResponse.payment.currency ?? "",
+        payeeName: optionsResponse.payment.payeeName,
+        payeeOrigin: optionsResponse.payment.payeeOrigin,
+      };
+      const authenticationResponse = await runPaymentConfirmation(requestData, payment);
+
+      const verifyResponse = await this.api.verify({
+        authenticationCredential: authenticationResponse,
+        token,
+        challengeId: optionsResponse.challengeId,
+        deviceId: this.anonymousId,
+      });
+
+      if ("error" in verifyResponse) {
+        return handleErrorResponse({errorResponse: verifyResponse, enableLogging: this.enableLogging});
+      }
+
+      if (verifyResponse.accessToken) {
+        this.cache.token = verifyResponse.accessToken;
+      }
+
+      const {accessToken, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
+
+      return {
+        data: {
+          isVerified,
+          token: accessToken,
+          userId,
+          userAuthenticatorId,
+          username,
+          displayName: userDisplayName,
+          authenticationResponse,
+        },
+      };
+    } catch (e) {
+      handleWebAuthnError(e);
+
+      throw e;
     }
   }
 
