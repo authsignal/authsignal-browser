@@ -29,12 +29,15 @@ export class PasskeyApiClient {
   async registrationOptions({
     token,
     username,
+    displayName,
     authenticatorAttachment,
     useCookies,
   }: {token: string} & RegistrationOptsRequest): Promise<RegistrationOptsResponse | ErrorResponse> {
-    const body: RegistrationOptsRequest = Boolean(authenticatorAttachment)
-      ? {username, authenticatorAttachment}
-      : {username};
+    const body: RegistrationOptsRequest = {
+      username,
+      displayName,
+      ...(authenticatorAttachment !== undefined && {authenticatorAttachment}),
+    };
 
     const url = useCookies
       ? `${this.baseUrl}/client/user-authenticators/passkey/registration-options/web`

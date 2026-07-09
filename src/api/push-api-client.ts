@@ -1,6 +1,6 @@
 import {buildHeaders, handleTokenExpired} from "./helpers";
 import {ApiClientOptions, ErrorResponse} from "./types/shared";
-import {PushChallengeResponse, PushVerifyResponse} from "./types/push";
+import {PushChallengeResponse, PushVerifyApiResponse} from "./types/push";
 
 export class PushApiClient {
   tenantId: string;
@@ -43,7 +43,7 @@ export class PushApiClient {
   }: {
     challengeId: string;
     token: string;
-  }): Promise<PushVerifyResponse | ErrorResponse> {
+  }): Promise<PushVerifyApiResponse | ErrorResponse> {
     const body = {challengeId};
 
     const response = await fetch(`${this.baseUrl}/client/verify/push`, {
