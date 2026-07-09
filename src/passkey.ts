@@ -343,6 +343,13 @@ export class Passkey {
     }
   }
 
+  /**
+   * @deprecated This method only checks credential IDs cached by the SDK in this browser profile's
+   * localStorage and confirms they still exist on the server. It does not query the browser credential
+   * manager or prove that a passkey is available on the current device. There is no reliable browser
+   * SDK replacement for checking local passkey availability, so use product or server-side state for
+   * enrollment prompts and keep a fallback authentication option in passkey sign-in flows.
+   */
   async isAvailableOnDevice({userId}: {userId: string}) {
     if (!userId) {
       throw new Error("userId is required");
