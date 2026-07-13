@@ -10,6 +10,7 @@ import {ErrorCode} from "../../types";
 
 export type RegistrationOptsRequest = {
   username?: string;
+  displayName?: string;
   authenticatorAttachment?: AuthenticatorAttachment | null;
   useCookies?: boolean;
 };

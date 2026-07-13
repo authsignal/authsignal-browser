@@ -18,7 +18,7 @@ export type ChallengeParams = {
   custom?: Record<string, unknown>;
   /** Use REST API polling instead of WebSocket connection. Default: false */
   polling?: boolean;
-  /** The interval in milliseconds at which the QR code challenge will be polled. Default: 5 seconds (Only used when polling is true)*/
+  /** The interval in milliseconds at which the QR code challenge will be polled. Default: 3 seconds (Only used when polling is true)*/
   pollInterval?: number;
   /** The interval in milliseconds at which the QR code challenge will be refreshed. Default: 9 minutes */
   refreshInterval?: number;

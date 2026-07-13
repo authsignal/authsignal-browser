@@ -39,6 +39,18 @@ const authenticationResponse = {
   type: "public-key",
 };
 
+const registrationResponse = {
+  id: "new-credential-id",
+  rawId: "new-credential-id",
+  response: {
+    clientDataJSON: "client-data",
+    attestationObject: "attestation-object",
+  },
+  authenticatorAttachment: "platform",
+  clientExtensionResults: {},
+  type: "public-key",
+};
+
 function createPasskey({enableLogging = false}: {enableLogging?: boolean} = {}) {
   return new Passkey({
     baseUrl,
@@ -103,6 +115,59 @@ function setupSignalApi() {
 async function flushBackgroundSync() {
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
+
+describe("Passkey registration", () => {
+  const originalPublicKeyCredential = window.PublicKeyCredential;
+
+  beforeEach(() => {
+    webAuthnMocks.startAuthentication.mockReset();
+    webAuthnMocks.startRegistration.mockReset();
+    webAuthnMocks.startRegistration.mockResolvedValue(registrationResponse);
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+
+    Object.defineProperty(window, "PublicKeyCredential", {
+      configurable: true,
+      value: originalPublicKeyCredential,
+    });
+  });
+
+  it("sends displayName and explicit authenticatorAttachment values when requesting registration options", async () => {
+    const fetchMock = setupFetch();
+
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          challengeId: "challenge-id",
+          options: {
+            challenge: "challenge",
+            rp: {id: "example.com", name: "Example"},
+            user: {id: "user-handle", name: "jane.smith@example.com", displayName: "Jane Smith"},
+            pubKeyCredParams: [],
+          },
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({isVerified: true, accessToken: "access-token", userId: "user-id"}));
+
+    await createPasskey().signUp({
+      token: "token",
+      username: "jane.smith@example.com",
+      displayName: "Jane Smith",
+      authenticatorAttachment: null,
+      syncCredentials: false,
+    });
+
+    expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toEqual({
+      username: "jane.smith@example.com",
+      displayName: "Jane Smith",
+      authenticatorAttachment: null,
+    });
+  });
+});
 
 describe("Passkey passkey sync", () => {
   const originalPublicKeyCredential = window.PublicKeyCredential;
