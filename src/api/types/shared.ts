@@ -118,4 +118,6 @@ export type Authenticator = {
   devicePlatform?: DevicePlatform;
   username?: string;
   webauthnCredential?: WebauthnCredential;
+  erroredAt?: string;
+  errorCode?: string;
 };
