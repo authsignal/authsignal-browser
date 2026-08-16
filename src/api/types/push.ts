@@ -1,5 +1,11 @@
+export type PushDeliveryResult = {
+  userAuthenticatorId: string;
+  errorCode?: string;
+};
+
 export type PushChallengeResponse = {
   challengeId: string;
+  deliveryResults?: PushDeliveryResult[];
 };
 
 export type PushVerifyApiResponse = {
