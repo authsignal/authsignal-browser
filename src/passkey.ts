@@ -49,6 +49,7 @@ type SignUpResponse = {
 type SignInParams = {
   autofill?: boolean;
   action?: string;
+  idempotencyKey?: string;
   token?: string;
   useCookies?: boolean;
   onVerificationStarted?: () => unknown;
@@ -201,6 +202,10 @@ export class Passkey {
       throw new Error("action is not supported when providing a token");
     }
 
+    if (params?.idempotencyKey && params.token) {
+      throw new Error("idempotencyKey is not supported when providing a token");
+    }
+
     if (preferImmediatelyAvailableCredentials && params?.autofill) {
       throw new Error("autofill is not supported when using immediate UI mode");
     }
@@ -223,7 +228,11 @@ export class Passkey {
     }
 
     const challengeResponse = params?.action
-      ? await this.api.challenge({action: params?.action, useCookies: params?.useCookies})
+      ? await this.api.challenge({
+          action: params?.action,
+          useCookies: params?.useCookies,
+          idempotencyKey: params?.idempotencyKey,
+        })
       : null;
 
     if (challengeResponse && "error" in challengeResponse) {
@@ -457,7 +466,7 @@ export class Passkey {
       throw new DOMException("No immediately available credentials were found.", "NotAllowedError");
     }
 
-    return credential.toJSON();
+    return credential.toJSON() as AuthenticationResponseJSON;
   }
 
   private handleClientErrorResponse(
