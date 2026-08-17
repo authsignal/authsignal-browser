@@ -182,13 +182,13 @@ export class PasskeyApiClient {
     return response.json();
   }
 
-  async challenge({action, useCookies}: ChallengeRequest): Promise<ChallengeResponse | ErrorResponse> {
+  async challenge({action, idempotencyKey, useCookies}: ChallengeRequest): Promise<ChallengeResponse | ErrorResponse> {
     const url = useCookies ? `${this.baseUrl}/client/challenge/web` : `${this.baseUrl}/client/challenge`;
 
     const response = await fetch(url, {
       method: "POST",
       headers: buildHeaders({tenantId: this.tenantId}),
-      body: JSON.stringify({action}),
+      body: JSON.stringify({action, idempotencyKey}),
       credentials: useCookies ? "include" : "same-origin",
     });
 
