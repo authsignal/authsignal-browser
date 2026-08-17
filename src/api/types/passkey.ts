@@ -68,6 +68,7 @@ export type PasskeyAuthenticatorResponse = {
 
 export type ChallengeRequest = {
   action?: string;
+  idempotencyKey?: string;
   useCookies?: boolean;
 };
 
