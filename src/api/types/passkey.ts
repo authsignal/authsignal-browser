@@ -38,7 +38,13 @@ export type AuthenticationOptsResponse = {
   // Instrument label(s) persisted against the user's payment-capable credentials, for SPC.
   paymentInstruments?: {credentialId: string; displayName: string}[];
   // The transaction set server-side on the action (via track custom data), for the SPC ceremony.
-  payment?: {amount?: string; currency?: string; payeeName?: string; payeeOrigin?: string};
+  payment?: {
+    amount?: string;
+    currency?: string;
+    payeeName?: string;
+    payeeOrigin?: string;
+    instrumentDisplayName?: string;
+  };
 };
 
 export type AddAuthenticatorRequest = {

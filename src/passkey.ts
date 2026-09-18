@@ -401,7 +401,11 @@ export class Passkey {
     }
 
     try {
-      const requestData = toSpcRequestData(optionsResponse.options, optionsResponse.paymentInstruments);
+      const requestData = toSpcRequestData(
+        optionsResponse.options,
+        optionsResponse.paymentInstruments,
+        optionsResponse.payment.instrumentDisplayName
+      );
       const payment: SpcPayment = {
         amount: optionsResponse.payment.amount ?? "",
         currency: optionsResponse.payment.currency ?? "",

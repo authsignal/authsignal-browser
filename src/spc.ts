@@ -101,17 +101,19 @@ export async function runPaymentConfirmation(
 // Build SpcRequestData from the authentication-options response (the first-party path).
 export function toSpcRequestData(
   options: PublicKeyCredentialRequestOptionsJSON,
-  paymentInstruments?: {credentialId: string; displayName: string}[]
+  paymentInstruments?: {credentialId: string; displayName: string}[],
+  instrumentDisplayName?: string
 ): SpcRequestData {
   const rpId = (options as {rpId?: string}).rpId ?? window.location.hostname;
   const allowCredentials = (options.allowCredentials ?? []) as {id: string}[];
-  const persisted = paymentInstruments && paymentInstruments.length > 0 ? paymentInstruments[0] : undefined;
+  // Prefer the per-transaction instrument; fall back to the credential-level label.
+  const displayName = instrumentDisplayName ?? paymentInstruments?.[0]?.displayName;
 
   return {
     rpId,
     challenge: options.challenge,
     credentialIds: allowCredentials.map((credential) => credential.id),
-    instrument: persisted ? {displayName: persisted.displayName} : undefined,
+    instrument: displayName ? {displayName} : undefined,
   };
 }
 
