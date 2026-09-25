@@ -6,6 +6,7 @@ import {
   AuthenticatorAttachment,
   PublicKeyCredentialHint,
   PublicKeyCredentialRequestOptionsJSON,
+  WebAuthnAbortService,
 } from "@simplewebauthn/browser";
 
 import {PasskeyApiClient} from "./api/passkey-api-client";
@@ -20,6 +21,16 @@ import {signalAllAcceptedCredentials, signalUnknownCredential} from "./passkey-s
 import {AuthsignalResponse, ErrorCode} from "./types";
 import {Authenticator, VerificationMethod} from "./api/types/shared";
 import {AuthenticationOptsResponse} from "./api/types/passkey";
+import {
+  cancelCeremonies,
+  getCancellationCount,
+  isCeremonyAbortedError,
+  isUserCeremonyInProgress,
+  runUserCeremony,
+  startCeremony,
+  throwIfCeremonySuperseded,
+  waitForUserCeremonies,
+} from "./webauthn-ceremony";
 
 type PasskeyOptions = {
   baseUrl: string;
@@ -80,7 +91,8 @@ type ImmediateCredentialRequestOptions = CredentialRequestOptions & {
   uiMode: "immediate";
 };
 
-let autofillRequestPending = false;
+// Identifies the pending autofill request, if any.
+let pendingAutofillRequest: object | null = null;
 
 export class Passkey {
   public api: PasskeyApiClient;
@@ -95,16 +107,26 @@ export class Passkey {
     this.enableLogging = enableLogging;
   }
 
-  async signUp({
-    username,
-    displayName,
-    token,
-    authenticatorAttachment = "platform",
-    hints,
-    useAutoRegister = false,
-    useCookies = false,
-    syncCredentials = true,
-  }: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
+  async signUp(params: SignUpParams): Promise<AuthsignalResponse<SignUpResponse>> {
+    return runUserCeremony(
+      (ceremonyId) => this.performSignUp(params, ceremonyId),
+      (response) => Boolean(response.data)
+    );
+  }
+
+  private async performSignUp(
+    {
+      username,
+      displayName,
+      token,
+      authenticatorAttachment = "platform",
+      hints,
+      useAutoRegister = false,
+      useCookies = false,
+      syncCredentials = true,
+    }: SignUpParams,
+    ceremonyId: number
+  ): Promise<AuthsignalResponse<SignUpResponse>> {
     const userToken = token ?? this.cache.token;
 
     if (!userToken) {
@@ -133,6 +155,8 @@ export class Passkey {
 
     try {
       const optionsJSON = hints ? {...optionsResponse.options, hints} : optionsResponse.options;
+
+      throwIfCeremonySuperseded(ceremonyId);
 
       const registrationResponse = await startRegistration({optionsJSON, useAutoRegister});
 
@@ -183,8 +207,6 @@ export class Passkey {
         },
       };
     } catch (e) {
-      autofillRequestPending = false;
-
       handleWebAuthnError(e);
 
       throw e;
@@ -210,8 +232,6 @@ export class Passkey {
       throw new Error("autofill is not supported when using immediate UI mode");
     }
 
-    const syncCredentials = params?.syncCredentials ?? true;
-
     if (preferImmediatelyAvailableCredentials && !(await this.doesBrowserSupportImmediateMediation())) {
       return this.handleClientErrorResponse(
         ErrorCode.immediate_mediation_not_supported,
@@ -220,12 +240,80 @@ export class Passkey {
     }
 
     if (params?.autofill) {
-      if (autofillRequestPending) {
-        return {};
-      } else {
-        autofillRequestPending = true;
+      return this.signInWithAutofill(params);
+    }
+
+    return runUserCeremony(
+      (ceremonyId) => this.performSignIn(params, ceremonyId),
+      (response) => Boolean(response.data?.isVerified)
+    );
+  }
+
+  /**
+   * Cancels any pending passkey request, including an autofill request, which then resolves with a `user_canceled` error.
+   * This isn't needed before starting another sign-in, since any pending autofill request is cancelled automatically.
+   */
+  cancel() {
+    pendingAutofillRequest = null;
+
+    cancelCeremonies();
+  }
+
+  private async signInWithAutofill(params: SignInParams): Promise<AuthsignalResponse<SignInResponse>> {
+    if (pendingAutofillRequest) {
+      return {};
+    }
+
+    const autofillRequest = {};
+    const cancellationCount = getCancellationCount();
+
+    pendingAutofillRequest = autofillRequest;
+
+    try {
+      for (;;) {
+        // Don't interrupt a sign-in the user has started, e.g. by clicking a button.
+        // The ceremony must then be started without awaiting, so that a new user ceremony can't be missed.
+        while (isUserCeremonyInProgress()) {
+          await waitForUserCeremonies();
+        }
+
+        if (getCancellationCount() !== cancellationCount) {
+          return this.handleClientErrorResponse(ErrorCode.user_canceled, "The autofill request was canceled.");
+        }
+
+        try {
+          return await this.performSignIn(params, startCeremony());
+        } catch (e) {
+          if (!isCeremonyAbortedError(e)) {
+            throw e;
+          }
+
+          if (getCancellationCount() !== cancellationCount) {
+            return this.handleClientErrorResponse(ErrorCode.user_canceled, "The autofill request was canceled.");
+          }
+
+          // The autofill request was cancelled because the user started another sign-in.
+          // Restart it if that sign-in doesn't succeed, e.g. if the user dismisses the passkey prompt.
+          const succeeded = await waitForUserCeremonies();
+
+          if (succeeded !== false) {
+            return {};
+          }
+        }
+      }
+    } finally {
+      if (pendingAutofillRequest === autofillRequest) {
+        pendingAutofillRequest = null;
       }
     }
+  }
+
+  private async performSignIn(
+    params: SignInParams | undefined,
+    ceremonyId: number
+  ): Promise<AuthsignalResponse<SignInResponse>> {
+    const preferImmediatelyAvailableCredentials = Boolean(params?.preferImmediatelyAvailableCredentials);
+    const syncCredentials = params?.syncCredentials ?? true;
 
     const challengeResponse = params?.action
       ? await this.api.challenge({
@@ -236,8 +324,6 @@ export class Passkey {
       : null;
 
     if (challengeResponse && "error" in challengeResponse) {
-      autofillRequestPending = false;
-
       return handleErrorResponse({errorResponse: challengeResponse, enableLogging: this.enableLogging});
     }
 
@@ -251,12 +337,12 @@ export class Passkey {
         : await this.api.authenticationOptionsWeb({token: params?.token});
 
     if ("error" in optionsResponse) {
-      autofillRequestPending = false;
-
       return handleErrorResponse({errorResponse: optionsResponse, enableLogging: this.enableLogging});
     }
 
     try {
+      throwIfCeremonySuperseded(ceremonyId);
+
       const authenticationResponse = preferImmediatelyAvailableCredentials
         ? await this.getImmediateMediationCredential(optionsResponse.options)
         : await startAuthentication({
@@ -277,8 +363,6 @@ export class Passkey {
       });
 
       if ("error" in verifyResponse) {
-        autofillRequestPending = false;
-
         if (syncCredentials && verifyResponse.errorCode === ErrorCode.unknown_credential) {
           const rpId = this.getAuthOptionsRpId(optionsResponse.options);
 
@@ -319,8 +403,6 @@ export class Passkey {
 
       const {accessToken: token, userId, userAuthenticatorId, username, userDisplayName, isVerified} = verifyResponse;
 
-      autofillRequestPending = false;
-
       return {
         data: {
           isVerified,
@@ -333,8 +415,6 @@ export class Passkey {
         },
       };
     } catch (e) {
-      autofillRequestPending = false;
-
       if (preferImmediatelyAvailableCredentials && isImmediateMediationCredentialNotFoundError(e)) {
         return this.handleClientErrorResponse(
           ErrorCode.credential_not_found,
@@ -456,6 +536,10 @@ export class Passkey {
     if (!publicKey) {
       throw new Error("IMMEDIATE_MEDIATION_NOT_SUPPORTED");
     }
+
+    // Browsers only allow one WebAuthn request at a time, so cancel any pending autofill request first.
+    // Immediate UI mode requests must not be given an abort signal, so this request can't itself be cancelled.
+    WebAuthnAbortService.cancelCeremony();
 
     const credential = (await navigator.credentials.get({
       publicKey,

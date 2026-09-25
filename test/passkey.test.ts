@@ -5,9 +5,10 @@ const webAuthnMocks = vi.hoisted(() => ({
   startRegistration: vi.fn(),
 }));
 
-vi.mock("@simplewebauthn/browser", () => ({
+vi.mock("@simplewebauthn/browser", async (importOriginal) => ({
   startAuthentication: webAuthnMocks.startAuthentication,
   startRegistration: webAuthnMocks.startRegistration,
+  WebAuthnAbortService: (await importOriginal<typeof import("@simplewebauthn/browser")>()).WebAuthnAbortService,
   WebAuthnError: class WebAuthnError extends Error {
     code?: string;
 
@@ -484,5 +485,197 @@ describe("Passkey immediate UI mode", () => {
     await expect(createPasskey().signIn({preferImmediatelyAvailableCredentials: true, autofill: true})).rejects.toThrow(
       "autofill is not supported when using immediate UI mode"
     );
+  });
+});
+
+function rejectOnAbort(signal: AbortSignal) {
+  return new Promise((_, reject) => {
+    signal.addEventListener("abort", () => reject(signal.reason));
+  });
+}
+
+describe("Passkey autofill cancellation", () => {
+  const originalPublicKeyCredential = window.PublicKeyCredential;
+  const originalNavigatorCredentials = navigator.credentials;
+
+  let passkey: Passkey;
+  let WebAuthnAbortService: typeof import("@simplewebauthn/browser").WebAuthnAbortService;
+  let buttonAuthentication: () => Promise<unknown>;
+
+  const autofillCalls = () =>
+    webAuthnMocks.startAuthentication.mock.calls.filter(([options]) => options.useBrowserAutofill).length;
+
+  beforeEach(async () => {
+    ({WebAuthnAbortService} = await import("@simplewebauthn/browser"));
+
+    webAuthnMocks.startAuthentication.mockReset();
+    webAuthnMocks.startRegistration.mockReset();
+    localStorage.clear();
+
+    buttonAuthentication = () => Promise.resolve(authenticationResponse);
+
+    // Mirrors @simplewebauthn/browser: every ceremony aborts the previous one
+    webAuthnMocks.startAuthentication.mockImplementation(({useBrowserAutofill}: {useBrowserAutofill?: boolean}) => {
+      const signal = WebAuthnAbortService.createNewAbortSignal();
+
+      return useBrowserAutofill ? rejectOnAbort(signal) : buttonAuthentication();
+    });
+
+    const fetchMock = setupFetch();
+    fetchMock.mockImplementation((url: string) =>
+      Promise.resolve(
+        jsonResponse(
+          url.endsWith("/verify/passkey")
+            ? {isVerified: true, accessToken: "access-token", userId: "user-id"}
+            : authenticationOptionsResponse()
+        )
+      )
+    );
+
+    passkey = createPasskey();
+  });
+
+  afterEach(() => {
+    passkey.cancel();
+
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+
+    Object.defineProperty(window, "PublicKeyCredential", {
+      configurable: true,
+      value: originalPublicKeyCredential,
+    });
+    Object.defineProperty(navigator, "credentials", {
+      configurable: true,
+      value: originalNavigatorCredentials,
+    });
+  });
+
+  it("cancels pending autofill when an immediate UI mode sign-in starts", async () => {
+    const {credentialsGet} = setupImmediateApi();
+    credentialsGet.mockResolvedValue({toJSON: () => authenticationResponse});
+
+    const autofillPromise = passkey.signIn({autofill: true});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(1));
+
+    const result = await passkey.signIn({preferImmediatelyAvailableCredentials: true, syncCredentials: false});
+
+    expect(result.data?.isVerified).toBe(true);
+    expect(credentialsGet.mock.calls[0][0]).not.toHaveProperty("signal");
+    await expect(autofillPromise).resolves.toEqual({});
+    expect(autofillCalls()).toBe(1);
+  });
+
+  it("restarts autofill when an immediate UI mode sign-in finds no credential", async () => {
+    const {credentialsGet} = setupImmediateApi();
+    credentialsGet.mockRejectedValue(new DOMException("No credentials", "NotAllowedError"));
+
+    const autofillPromise = passkey.signIn({autofill: true});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(1));
+
+    const result = await passkey.signIn({preferImmediatelyAvailableCredentials: true});
+
+    expect(result.errorCode).toBe(ErrorCode.credential_not_found);
+    await vi.waitFor(() => expect(autofillCalls()).toBe(2));
+
+    passkey.cancel();
+
+    await expect(autofillPromise).resolves.toMatchObject({errorCode: ErrorCode.user_canceled});
+  });
+
+  it("restarts autofill when the user dismisses the passkey prompt", async () => {
+    buttonAuthentication = () => Promise.reject(new DOMException("Dismissed", "NotAllowedError"));
+
+    const autofillPromise = passkey.signIn({autofill: true});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(1));
+
+    await expect(passkey.signIn()).rejects.toMatchObject({name: "NotAllowedError"});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(2));
+
+    passkey.cancel();
+
+    await expect(autofillPromise).resolves.toMatchObject({errorCode: ErrorCode.user_canceled});
+  });
+
+  it("resolves autofill once a sign-in started by the user succeeds", async () => {
+    let completeButtonSignIn: (response: unknown) => void = () => undefined;
+    buttonAuthentication = () => new Promise((resolve) => (completeButtonSignIn = resolve));
+
+    const autofillPromise = passkey.signIn({autofill: true});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(1));
+
+    const buttonPromise = passkey.signIn({syncCredentials: false});
+    await vi.waitFor(() => expect(webAuthnMocks.startAuthentication).toHaveBeenCalledTimes(2));
+
+    completeButtonSignIn(authenticationResponse);
+
+    expect((await buttonPromise).data?.isVerified).toBe(true);
+    await expect(autofillPromise).resolves.toEqual({});
+    expect(autofillCalls()).toBe(1);
+  });
+
+  it("does not start autofill while a sign-in started by the user is in progress", async () => {
+    const fetchMock = vi.mocked(fetch);
+    let resolveAutofillOptions: (response: Response) => void = () => undefined;
+    fetchMock.mockReturnValueOnce(new Promise((resolve) => (resolveAutofillOptions = resolve)));
+
+    let completeButtonSignIn: (response: unknown) => void = () => undefined;
+    buttonAuthentication = () => new Promise((resolve) => (completeButtonSignIn = resolve));
+
+    const autofillPromise = passkey.signIn({autofill: true});
+    const buttonPromise = passkey.signIn({syncCredentials: false});
+    await vi.waitFor(() => expect(webAuthnMocks.startAuthentication).toHaveBeenCalledTimes(1));
+
+    resolveAutofillOptions(jsonResponse(authenticationOptionsResponse()));
+    await flushBackgroundSync();
+
+    expect(autofillCalls()).toBe(0);
+
+    completeButtonSignIn(authenticationResponse);
+
+    expect((await buttonPromise).data?.isVerified).toBe(true);
+    await expect(autofillPromise).resolves.toEqual({});
+    expect(autofillCalls()).toBe(0);
+  });
+
+  it("resolves autofill with user_canceled when cancelled while fetching options", async () => {
+    const fetchMock = vi.mocked(fetch);
+    let resolveOptions: (response: Response) => void = () => undefined;
+    fetchMock.mockReturnValueOnce(new Promise((resolve) => (resolveOptions = resolve)));
+
+    const autofillPromise = passkey.signIn({autofill: true});
+
+    passkey.cancel();
+    resolveOptions(jsonResponse(authenticationOptionsResponse()));
+
+    await expect(autofillPromise).resolves.toMatchObject({errorCode: ErrorCode.user_canceled});
+    expect(webAuthnMocks.startAuthentication).not.toHaveBeenCalled();
+  });
+
+  it("allows autofill to be started again after cancelling", async () => {
+    const firstAutofill = passkey.signIn({autofill: true});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(1));
+
+    passkey.cancel();
+    const secondAutofill = passkey.signIn({autofill: true});
+
+    await expect(firstAutofill).resolves.toMatchObject({errorCode: ErrorCode.user_canceled});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(2));
+
+    passkey.cancel();
+
+    await expect(secondAutofill).resolves.toMatchObject({errorCode: ErrorCode.user_canceled});
+  });
+
+  it("ignores a second autofill request while one is pending", async () => {
+    const autofillPromise = passkey.signIn({autofill: true});
+    await vi.waitFor(() => expect(autofillCalls()).toBe(1));
+
+    await expect(passkey.signIn({autofill: true})).resolves.toEqual({});
+    expect(autofillCalls()).toBe(1);
+
+    passkey.cancel();
+
+    await expect(autofillPromise).resolves.toMatchObject({errorCode: ErrorCode.user_canceled});
   });
 });
