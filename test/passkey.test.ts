@@ -514,7 +514,6 @@ describe("Passkey autofill cancellation", () => {
 
     buttonAuthentication = () => Promise.resolve(authenticationResponse);
 
-    // Mirrors @simplewebauthn/browser: every ceremony aborts the previous one
     webAuthnMocks.startAuthentication.mockImplementation(({useBrowserAutofill}: {useBrowserAutofill?: boolean}) => {
       const signal = WebAuthnAbortService.createNewAbortSignal();
 

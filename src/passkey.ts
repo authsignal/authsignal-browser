@@ -91,7 +91,6 @@ type ImmediateCredentialRequestOptions = CredentialRequestOptions & {
   uiMode: "immediate";
 };
 
-// Identifies the pending autofill request, if any.
 let pendingAutofillRequest: object | null = null;
 
 export class Passkey {
@@ -249,10 +248,6 @@ export class Passkey {
     );
   }
 
-  /**
-   * Cancels any pending passkey request, including an autofill request, which then resolves with a `user_canceled` error.
-   * This isn't needed before starting another sign-in, since any pending autofill request is cancelled automatically.
-   */
   cancel() {
     pendingAutofillRequest = null;
 
@@ -271,8 +266,6 @@ export class Passkey {
 
     try {
       for (;;) {
-        // Don't interrupt a sign-in the user has started, e.g. by clicking a button.
-        // The ceremony must then be started without awaiting, so that a new user ceremony can't be missed.
         while (isUserCeremonyInProgress()) {
           await waitForUserCeremonies();
         }
@@ -292,8 +285,6 @@ export class Passkey {
             return this.handleClientErrorResponse(ErrorCode.user_canceled, "The autofill request was canceled.");
           }
 
-          // The autofill request was cancelled because the user started another sign-in.
-          // Restart it if that sign-in doesn't succeed, e.g. if the user dismisses the passkey prompt.
           const succeeded = await waitForUserCeremonies();
 
           if (succeeded !== false) {
@@ -537,8 +528,6 @@ export class Passkey {
       throw new Error("IMMEDIATE_MEDIATION_NOT_SUPPORTED");
     }
 
-    // Browsers only allow one WebAuthn request at a time, so cancel any pending autofill request first.
-    // Immediate UI mode requests must not be given an abort signal, so this request can't itself be cancelled.
     WebAuthnAbortService.cancelCeremony();
 
     const credential = (await navigator.credentials.get({
