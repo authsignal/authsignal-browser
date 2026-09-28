@@ -10,6 +10,7 @@ import {TokenCache} from "./token-cache";
 import {handleErrorResponse, handleWebAuthnError} from "./helpers";
 import {AuthsignalResponse} from "./types";
 import {SecurityKeyApiClient} from "./api/security-key-api-client";
+import {runUserCeremony} from "./webauthn-ceremony";
 
 type SecurityKeyOptions = {
   baseUrl: string;
@@ -39,7 +40,25 @@ export class SecurityKey {
     this.enableLogging = enableLogging;
   }
 
-  async enroll({hints}: {hints?: PublicKeyCredentialHint[]} = {}): Promise<AuthsignalResponse<EnrollResponse>> {
+  async enroll(params: {hints?: PublicKeyCredentialHint[]} = {}): Promise<AuthsignalResponse<EnrollResponse>> {
+    return runUserCeremony(
+      () => this.performEnroll(params),
+      (response) => Boolean(response.data)
+    );
+  }
+
+  async verify(): Promise<AuthsignalResponse<VerifyResponse>> {
+    return runUserCeremony(
+      () => this.performVerify(),
+      (response) => Boolean(response.data?.isVerified)
+    );
+  }
+
+  private async performEnroll({
+    hints,
+  }: {
+    hints?: PublicKeyCredentialHint[];
+  }): Promise<AuthsignalResponse<EnrollResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }
@@ -85,7 +104,7 @@ export class SecurityKey {
     }
   }
 
-  async verify(): Promise<AuthsignalResponse<VerifyResponse>> {
+  private async performVerify(): Promise<AuthsignalResponse<VerifyResponse>> {
     if (!this.cache.token) {
       return this.cache.handleTokenNotSetError();
     }

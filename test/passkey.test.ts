@@ -5,9 +5,10 @@ const webAuthnMocks = vi.hoisted(() => ({
   startRegistration: vi.fn(),
 }));
 
-vi.mock("@simplewebauthn/browser", () => ({
+vi.mock("@simplewebauthn/browser", async (importOriginal) => ({
   startAuthentication: webAuthnMocks.startAuthentication,
   startRegistration: webAuthnMocks.startRegistration,
+  WebAuthnAbortService: (await importOriginal<typeof import("@simplewebauthn/browser")>()).WebAuthnAbortService,
   WebAuthnError: class WebAuthnError extends Error {
     code?: string;
 

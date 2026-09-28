@@ -96,6 +96,7 @@ export enum ErrorCode {
   unknown_credential = "unknown_credential",
   credential_not_found = "credential_not_found",
   immediate_mediation_not_supported = "immediate_mediation_not_supported",
+  user_canceled = "user_canceled",
 }
 
 export type AuthsignalResponse<T> = {
